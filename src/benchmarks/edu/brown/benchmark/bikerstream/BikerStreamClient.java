@@ -112,7 +112,7 @@ public class BikerStreamClient extends BenchmarkComponent {
             }
 
                 client.callProcedure(new CheckinCallback(), "CheckinBike",  rider.getRiderId(), rider.getFinalStation());
-
+            
         } catch (Exception e) {
             e.printStackTrace();
             return false;
