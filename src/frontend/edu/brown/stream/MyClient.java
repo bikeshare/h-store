@@ -99,6 +99,7 @@ public class MyClient {
 			}
 			if (args.length() == 3) {
 				results = myc.client.callProcedure(procedureName, args.get(0), args.get(1), args.get(2)).getResults();
+				return results;
 			}
 			System.out.println(j.get("proc"));
 		} catch (JSONException e) {
