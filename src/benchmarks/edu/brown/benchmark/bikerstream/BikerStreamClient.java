@@ -139,7 +139,31 @@ public class BikerStreamClient extends BenchmarkComponent {
             }
 
             try {
-                client.callProcedure(new CheckinCallback(), "CheckinBike",  rider.getRiderId(), rider.getFinalStation());
+                client.callProcedure(new CheckinCallback(), "Stations",  rider.getRiderId(), rider.getFinalStation());
+            } catch (Exception e) {
+                failure.incrementAndGet();
+            }
+
+            try {
+                client.callProcedure(new CheckinCallback(), "StationStatus",  rider.getRiderId(), rider.getFinalStation());
+            } catch (Exception e) {
+                failure.incrementAndGet();
+            }
+
+            try {
+                client.callProcedure(new CheckinCallback(), "Users",  rider.getRiderId(), rider.getFinalStation());
+            } catch (Exception e) {
+                failure.incrementAndGet();
+            }
+
+            try {
+                client.callProcedure(new CheckinCallback(), "Bikes",  rider.getRiderId(), rider.getFinalStation());
+            } catch (Exception e) {
+                failure.incrementAndGet();
+            }   
+
+            try {
+                client.callProcedure(new CheckinCallback(), "BikeStatus",  rider.getRiderId(), rider.getFinalStation());
             } catch (Exception e) {
                 failure.incrementAndGet();
             }
@@ -160,7 +184,12 @@ public class BikerStreamClient extends BenchmarkComponent {
             "CheckoutBike",
             "RideBike",
             "CheckinBike",
-            "TestProcedure"
+            "TestProcedure",
+            "Stations",
+            "StationStatus",
+            "Users",
+            "Bikes",
+            "BikeStatus"
         };
         return (procNames);
     }
