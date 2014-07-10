@@ -60,6 +60,8 @@ public class MyClient {
 	Client client;
 	InputClientConnection icc;
 	ServerSocket serverSocket;
+	Socket api; //Connection to the Rest API
+	BufferedReader apiCall; //Reads messages from the Rest API
 
 	MyClient() {
 		this.port = HStoreConstants.DEFAULT_PORT; //21212
@@ -77,7 +79,7 @@ public class MyClient {
 	//Take a json message from the socket and parse it for the procedure
 	//name and arguments.  Make a call to the specified procedure and return
 	//the array of VoltTables.
-	public VoltTable [] callStoredProcedure(String s, MyClient myc) {
+	public VoltTable [] callStoredProcedure(String s) throws JSONException {
 		JSONObject j;
 		VoltTable [] results;
 		System.out.println("Calling stored procedure");
@@ -85,34 +87,43 @@ public class MyClient {
 			j = new JSONObject(s);
 			String procedureName = j.getString("proc");
 			JSONArray args = j.getJSONArray("args");
-			if (args.length() == 0) {
-				results = myc.client.callProcedure(procedureName).getResults();
-				return results;
+			ArrayList<Object> conversionList = new ArrayList<Object>();
+			for (int i = 0; i < args.length(); i++) {
+				conversionList.add(args.get(i));
 			}
-			if (args.length() == 1) {
-				results = myc.client.callProcedure(procedureName, args.get(0)).getResults();
-				return results;
-			}
-			if (args.length() == 2) {
-				results = myc.client.callProcedure(procedureName, args.get(0), args.get(1)).getResults();
-				return results;
-			}
-			if (args.length() == 3) {
-				results = myc.client.callProcedure(procedureName, args.get(0), args.get(1), args.get(2)).getResults();
-				return results;
-			}
-			System.out.println(j.get("proc"));
+			Object [] argumentList = conversionList.toArray();
+			results = client.callProcedure(procedureName, argumentList).getResults();
+			return results;
 		} catch (JSONException e) {
-			// TODO Auto-generated catch block
+			if (s == null)
+				System.out.println("Received null string from client");
+			else {
+				System.out.println("JSON object missing expected fields");
+			}
 			e.printStackTrace();
 		} catch (NoConnectionsException e) {
-			// TODO Auto-generated catch block
+			System.out.println("Connection to S-Store was lost");
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			if (e.getMessage() != null)
+				System.out.println(e.getMessage());
 			e.printStackTrace();
 		} catch (ProcCallException e) {
+			System.out.println(e.getMessage());
+			JSONObject error = new JSONObject();
+			error.put("data", "");
+			error.put("error", e.getMessage().split("\n")[0]);
+			error.put("success", 0);
+			sendJSON(error);
+			e.printStackTrace();
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
+			System.out.println(e.getMessage());
+			JSONObject error = new JSONObject();
+			error.put("data", "");
+			error.put("error", e.getMessage());
+			error.put("success", 0);
+			sendJSON(error);
 			e.printStackTrace();
 		}
 		return null;
@@ -135,7 +146,7 @@ public class MyClient {
 					try {
 						j.put(vt.getColumnName(col), vt.getLong(col));
 					} catch (JSONException e) {
-						// TODO Auto-generated catch block
+						System.out.println("Table column name is null");
 						e.printStackTrace();
 					}
 					break;
@@ -143,7 +154,7 @@ public class MyClient {
 					try {
 						j.put(vt.getColumnName(col), vt.getString(col));
 					} catch (JSONException e) {
-						// TODO Auto-generated catch block
+						System.out.println("Table column name is null");
 						e.printStackTrace();
 					}
 					break;
@@ -151,7 +162,7 @@ public class MyClient {
 					try {
 						j.put(vt.getColumnName(col), vt.getDecimalAsBigDecimal(col));
 					} catch (JSONException e) {
-						// TODO Auto-generated catch block
+						System.out.println("Table column name is null");
 						e.printStackTrace();
 					}
 					break;
@@ -159,7 +170,7 @@ public class MyClient {
 					try {
 						j.put(vt.getColumnName(col), vt.getDouble(col));
 					} catch (JSONException e) {
-						// TODO Auto-generated catch block
+						System.out.println("Table column name is null");
 						e.printStackTrace();
 					}
 					break;
@@ -168,6 +179,36 @@ public class MyClient {
 			s.add(j.toString());
 		}
 		return s;
+	}
+	
+	public String readString() {
+		String procedureName;
+		try {
+			while ((procedureName = apiCall.readLine()) == null) {
+				System.out.println("Received a null string");
+				api = serverSocket.accept(); //Client likely disconnected
+				System.out.println("Connected to " + api.getInetAddress());
+				apiCall = new BufferedReader(new InputStreamReader(api.getInputStream()));
+			}
+			return procedureName;
+		} catch (IOException e) {
+			System.out.println("Unable to read from the Rest client");
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	public void sendJSON(JSONObject j) {
+		String jsonMessage = (j.toString() + "\n");
+		System.out.println(jsonMessage);
+		try {
+			OutputStreamWriter out = new OutputStreamWriter(api.getOutputStream(), "UTF-8");
+			out.write(jsonMessage, 0, jsonMessage.length());
+			out.flush();
+		} catch (IOException e) {
+			System.out.println("Unable to write to the Rest client");
+			e.printStackTrace();
+		}
 	}
 
 	//Used to grab information about where S-Store is running and establish a
@@ -220,89 +261,65 @@ public class MyClient {
 		}
 		return new InputClientConnection(client, hostname, port);
 	}
-
+	
 	public static void main(String [] args) {
+		String proc;
+		JSONObject j;
+		VoltTable [] results;
 		MyClient myc = new MyClient();
-		JSONObject json = new JSONObject();
 		try {
-			json.put("type", "CONNECT");
-		} catch (JSONException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		try {
-			Socket api = myc.serverSocket.accept();
-			System.out.println("Connected to " + api.getInetAddress());
-			BufferedReader apiCall = new BufferedReader(new InputStreamReader(api.getInputStream()));
+			myc.api = myc.serverSocket.accept();
+			System.out.println("Connected to " + myc.api.getInetAddress());
+			myc.apiCall = new BufferedReader(new InputStreamReader(myc.api.getInputStream()));
 			while (true) {
-				System.out.println("Starting while loop");
-				/*if (api.isClosed()) {
-					System.out.println("Socket was closed");
-					api = myc.serverSocket.accept();
-					System.out.println("Connected to " + api.getInetAddress());
-					apiCall = new BufferedReader(new InputStreamReader(api.getInputStream()));
-				}*/
-				String proc;
-				String jsonMessage;
 				ArrayList<String> rows = new ArrayList<String>();
-				JSONObject j;
 				JSONArray jsonArray = new JSONArray();
-				//Socket api = myc.serverSocket.accept();
-				//System.out.println("Connected to " + api.getInetAddress());
-				//BufferedReader apiCall = new BufferedReader(new InputStreamReader(api.getInputStream()));
-				while ((proc = apiCall.readLine()) == null) {
-					System.out.println("Received a null string");
-					api = myc.serverSocket.accept();
-					System.out.println("Connected to " + api.getInetAddress());
-					apiCall = new BufferedReader(new InputStreamReader(api.getInputStream()));
-				}
+				proc = myc.readString();
 				System.out.println("Received input stream");
-				VoltTable [] results = myc.callStoredProcedure(proc, myc);
+				while ((results = myc.callStoredProcedure(proc)) == null) {
+					proc = myc.readString();
+				}
 				System.out.println(results[0].toString());
+				j = new JSONObject();
 				for (VoltTable vt: results) {
 					if (vt.getColumnCount() == 1 && vt.getRowCount() == 1) {
-						j = new JSONObject();
+						long error = vt.asScalarLong();
 						j.put("data", jsonArray);
-						j.put("success", vt.asScalarLong());
-						ArrayList<String>temp = new ArrayList<String>();
-						temp.add(String.valueOf(vt.asScalarLong()));
-						rows = temp;
+						if (error == 0) //Currently a false positive
+							j.put("error", "DB error");
+						else
+							j.put("error", "");
+						j.put("success", error);
+						rows.add(String.valueOf(vt.asScalarLong()));
 					}
 					else {
-						rows = myc.parseResults(vt);
-						int rownum = 1;
+						rows.addAll(myc.parseResults(vt));
 						for (String s: rows) {
 							jsonArray.put(new JSONObject(s));
-							System.out.println("Added a row to the json object");
 							System.out.println(jsonArray.toString());
 						}
 						System.out.println(jsonArray.toString());
-						j = new JSONObject();
 						j.put("data", jsonArray);
+						j.put("error", "");
 						j.put("success", 1);
 					}
-					jsonMessage = (j.toString() + "\n");
-					OutputStreamWriter out = new OutputStreamWriter(api.getOutputStream(), "UTF-8");
-					out.write(jsonMessage, 0, jsonMessage.length());
-					out.flush();
+					System.out.println("Sending json to " + myc.api.toString());
+					myc.sendJSON(j);
 					System.out.println("Done sending rows");
-					/*if (!api.isConnected()) {
-						System.out.println("Closing socket");
-						api.close();
-					}*/
 				}
 			}
 		} catch (NoConnectionsException e) {
-			// TODO Auto-generated catch block
+			System.out.println("Failure to create S-Store client connection");
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			System.out.println("Unable to connect to Rest client");
 			e.printStackTrace();
 		} catch (JSONException e) {
-			// TODO Auto-generated catch block
+			// This exception should never get thrown.
+			// put() throws this in the event of a null string or an incorrect type being passed
+			// as an argument.  The arguments are hard coded, so something catastrophic would have
+			// to occur.
 			e.printStackTrace();
 		}
-		System.out.print("hello");
 	}
-
 }
