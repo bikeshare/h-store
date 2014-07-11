@@ -68,7 +68,7 @@ public class RideBike extends VoltProcedure {
         }
 
         // return successfull reading
-        return BikerStreamConstants.BIKEREADING_SUCCESSFUL;
+        return 1;
     }
 
 }

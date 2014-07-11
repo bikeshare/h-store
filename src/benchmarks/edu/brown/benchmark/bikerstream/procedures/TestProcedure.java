@@ -55,7 +55,6 @@ public class TestProcedure extends VoltProcedure {
     public VoltTable [] run() {
         voltQueueSQL(getStation);
         return voltExecuteSQL(true);
-        //return 0;
     }
 
 } // End Class

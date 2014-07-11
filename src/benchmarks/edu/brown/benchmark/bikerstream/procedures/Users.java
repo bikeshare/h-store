@@ -48,14 +48,13 @@ public class Users extends VoltProcedure {
     // Is debugging on or not?
     final boolean debug = Log.isDebugEnabled();
 
-    public final SQLStmt getStation = new SQLStmt(
+    public final SQLStmt getUsers = new SQLStmt(
                 "SELECT * FROM users"
             );
 
     public VoltTable [] run() {
-        voltQueueSQL(getStation);
+        voltQueueSQL(getUsers);
         return voltExecuteSQL(true);
-        //return 0;
     }
 
 } // End Class

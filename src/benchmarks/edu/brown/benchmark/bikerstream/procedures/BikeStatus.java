@@ -48,14 +48,13 @@ public class BikeStatus extends VoltProcedure {
     // Is debugging on or not?
     final boolean debug = Log.isDebugEnabled();
 
-    public final SQLStmt getStation = new SQLStmt(
+    public final SQLStmt getBikeStatus = new SQLStmt(
                 "SELECT * FROM bikeStatus"
             );
 
     public VoltTable [] run() {
-        voltQueueSQL(getStation);
+        voltQueueSQL(getBikeStatus);
         return voltExecuteSQL(true);
-        //return 0;
     }
 
 } // End Class
