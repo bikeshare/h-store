@@ -49,11 +49,23 @@ public class CheckoutBike extends VoltProcedure {
     final boolean debug = Log.isDebugEnabled();
 
     public final SQLStmt getStation = new SQLStmt(
-                "SELECT * FROM stationstatus where station_id = ?"
+                "SELECT * FROM stationstatus WHERE station_id = ?"
             );
+    
+    public final SQLStmt checkUser = new SQLStmt(
+    			"SELECT COUNT(*) FROM bikes WHERE user_id = ?"
+    		);
 
     public final SQLStmt updateStation = new SQLStmt(
-                "UPDATE stationstatus SET current_bikes = ?, current_docks = ? where station_id = ?"
+                "UPDATE stationstatus SET current_bikes = ?, current_docks = ? WHERE station_id = ?"
+            );
+    
+    public final SQLStmt getBike = new SQLStmt(
+                "SELECT bike_id FROM bikes WHERE station_id = ? AND current_status = 0"
+            );
+   
+    public final SQLStmt assignBike = new SQLStmt(
+                "UPDATE bikes SET station_id = 'NULL', user_id = ?, current_status = 1 WHERE bike_id = ?"
             );
 
     public final SQLStmt log = new SQLStmt(
@@ -71,10 +83,22 @@ public class CheckoutBike extends VoltProcedure {
 
         long numBikes = results[0].fetchRow(0).getLong("current_bikes");
         long numDocks = results[0].fetchRow(0).getLong("current_docks");
+        
+        voltQueueSQL(checkUser, rider_id);
+        results = voltExecuteSQL();
+        
+        long bikesUserCheckedOut = results[0].fetchRow(0).getLong(0);
 
+        if (bikesUserCheckedOut >= 1)
+        	throw new Exception("User " + rider_id + " already has a bike checked out");
         if (numBikes > 0){
             voltQueueSQL(updateStation, --numBikes, ++numDocks, station_id);
             voltQueueSQL(log, rider_id, new TimestampType(), 1, "successfully got bike from station: " + station_id);
+            voltExecuteSQL();
+            voltQueueSQL(getBike, station_id);
+            VoltTable [] bikes = voltExecuteSQL();
+            long bike_id = bikes[0].fetchRow(0).getLong(0);
+            voltQueueSQL(assignBike, rider_id, bike_id);
             voltExecuteSQL();
             return 1;
         } else {

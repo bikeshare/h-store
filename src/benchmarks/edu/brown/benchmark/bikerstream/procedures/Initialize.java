@@ -44,7 +44,7 @@ public class Initialize extends VoltProcedure
     );
 
     public final SQLStmt insertBike = new SQLStmt(
-        "INSERT INTO bikes (bike_id, current_status) VALUES (?,?)"
+        "INSERT INTO bikes (bike_id, user_id, station_id, current_status) VALUES (?,'NULL',?,?)"
     );
 
     public final SQLStmt initialStationStatus = new SQLStmt(
@@ -64,7 +64,7 @@ public class Initialize extends VoltProcedure
 
             int j;
             for (j = 0; j < 10; ++j) {
-                voltQueueSQL(insertBike, (i*1000) + j, 0);
+                voltQueueSQL(insertBike, (i*1000) + j, i, 0);
             }
             voltQueueSQL(initialStationStatus, i, j +1, 20 - (j+1), 0.0, 0.0);
             voltExecuteSQL();

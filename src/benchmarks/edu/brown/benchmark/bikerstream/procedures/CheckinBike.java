@@ -55,6 +55,14 @@ public class CheckinBike extends VoltProcedure {
     public final SQLStmt updateStation = new SQLStmt(
                 "UPDATE stationstatus SET current_bikes = ?, current_docks = ? where station_id = ?"
             );
+    
+    public final SQLStmt getBike = new SQLStmt(
+    			"SELECT bike_id FROM bikes WHERE user_id = ?"
+    		);
+    
+    public final SQLStmt returnBike = new SQLStmt(
+    			"UPDATE bikes SET user_id = 'NULL', station_id = ?, current_status = 0 WHERE bike_id = ?"
+    		);
 
     public final SQLStmt log = new SQLStmt(
                 "INSERT INTO logs (user_id, time, success, action) VALUES (?,?,?,?)"
@@ -75,6 +83,15 @@ public class CheckinBike extends VoltProcedure {
             voltQueueSQL(updateStation, ++numBikes, --numDocks, station_id);
             voltQueueSQL(log, rider_id, new TimestampType(), 1, "successfully docked bike at station: " + station_id);
             voltExecuteSQL();
+            voltQueueSQL(getBike, rider_id);
+            VoltTable bikes[] = voltExecuteSQL();
+            if (bikes[0].getRowCount() >= 1) {
+            	long bike_id = bikes[0].fetchRow(0).getLong(0);
+            	voltQueueSQL(returnBike, station_id, bike_id);
+            	voltExecuteSQL();
+            }
+            else
+            	throw new Exception("Rider " + rider_id + " does not have a bike checked out");
             return 1;
         } else {
             voltQueueSQL(log, rider_id, new TimestampType(), 0, "could not dock bike at station: " + station_id);

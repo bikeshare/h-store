@@ -32,6 +32,8 @@ CREATE TABLE users (
 
 CREATE TABLE bikes (
     bike_id        INTEGER PRIMARY KEY
+,   user_id        INTEGER REFERENCES users(user_id)
+,   station_id     INTEGER REFERENCES stations(station_id)
 ,   current_status INTEGER NOT NULL -- 1=docked 2=riding
 );
 
