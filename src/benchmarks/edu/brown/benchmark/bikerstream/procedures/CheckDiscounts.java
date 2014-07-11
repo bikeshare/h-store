@@ -35,54 +35,31 @@ import org.voltdb.VoltProcedure;
 import org.voltdb.VoltTable;
 import org.voltdb.VoltType;
 import org.voltdb.types.TimestampType;
+import java.util.LinkedList;
 
 import edu.brown.benchmark.bikerstream.BikerStreamConstants;
 
 @ProcInfo (
     singlePartition = true
 )
-public class CheckoutBike extends VoltProcedure {
+public class CheckDiscounts extends VoltProcedure {
 
-    // Logging Information
-    private static final Logger Log = Logger.getLogger(CheckoutBike.class);
-    // Is debugging on or not?
-    final boolean debug = Log.isDebugEnabled();
+    public final SQLStmt getDockDiscount = new SQLStmt(
+            "SELECT current_dock_discount FROM stationStatus WHERE station_id = ?"
+        );
 
-    public final SQLStmt getStation = new SQLStmt(
-                "SELECT * FROM stationstatus where station_id = ?"
-            );
+    public long[] run(long[] station_ids) {
 
-    public final SQLStmt updateStation = new SQLStmt(
-                "UPDATE stationstatus SET current_bikes = ?, current_docks = ? where station_id = ?"
-            );
+        int numStations = station_ids.length;
 
-    public final SQLStmt log = new SQLStmt(
-                "INSERT INTO logs (user_id, time, success, action) VALUES (?,?,?,?)"
-            );
+        long[] discounts = new long[numStations];
 
-
-
-    public long run(long rider_id, long station_id) throws Exception {
-
-        voltQueueSQL(getStation, station_id);
-        VoltTable results[] = voltExecuteSQL();
-
-        assert(results[0].getRowCount() == 1);
-
-        long numBikes = results[0].fetchRow(0).getLong("current_bikes");
-        long numDocks = results[0].fetchRow(0).getLong("current_docks");
-
-        if (numBikes > 0){
-            voltQueueSQL(updateStation, --numBikes, ++numDocks, station_id);
-            voltQueueSQL(log, rider_id, new TimestampType(), 1, "successfully got bike from station: " + station_id);
-            voltExecuteSQL();
-            return 1;
-        } else {
-            voltQueueSQL(log, rider_id, new TimestampType(), 0, "could not get bike from station: " + station_id);
-            voltExecuteSQL();
-            throw new RuntimeException("There are no bikes availible at station: " + station_id);
+        for (int i = 0; i < numStations; ++i){
+            voltQueueSQL(getDockDiscount, station_ids[i]);
+            discounts[i] = voltExecuteSQL()[0].asScalarLong();
         }
 
+        return discounts;
     }
 
 } // End Class
