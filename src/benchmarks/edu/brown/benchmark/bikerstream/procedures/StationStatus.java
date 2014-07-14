@@ -48,23 +48,13 @@ public class StationStatus extends VoltProcedure {
     // Is debugging on or not?
     final boolean debug = Log.isDebugEnabled();
 
-<<<<<<< HEAD
     public final SQLStmt getStationStatus = new SQLStmt(
-=======
-    public final SQLStmt getStation = new SQLStmt(
->>>>>>> Added Stored Procedures to do SELECT * FROM $table for every table
                 "SELECT * FROM StationStatus"
             );
 
     public VoltTable [] run() {
-<<<<<<< HEAD
         voltQueueSQL(getStationStatus);
         return voltExecuteSQL(true);
-=======
-        voltQueueSQL(getStation);
-        return voltExecuteSQL(true);
-        //return 0;
->>>>>>> Added Stored Procedures to do SELECT * FROM $table for every table
     }
 
 } // End Class
