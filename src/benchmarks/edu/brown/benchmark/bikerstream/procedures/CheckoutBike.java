@@ -87,6 +87,11 @@ public class CheckoutBike extends VoltProcedure {
         voltQueueSQL(checkUser, rider_id);
         results = voltExecuteSQL();
         
+        if (results[0].getRowCount() < 1) {
+        	voltQueueSQL(log, rider_id, new TimestampType(), 0, "could not get bike from station: " + station_id);
+            throw new RuntimeException("There are no bikes availible at station: " + station_id);
+        }
+        
         long bikesUserCheckedOut = results[0].fetchRow(0).getLong(0);
 
         if (bikesUserCheckedOut >= 1)
