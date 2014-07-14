@@ -130,7 +130,7 @@ public class BikerStreamClient extends BenchmarkComponent {
             "RideBike",
             "CheckinBike",
             "TestProcedure",
-            "LogRiderTrip"
+            "LogRiderTrip",
             "TestProcedure"
         };
         return (procNames);
