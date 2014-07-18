@@ -268,7 +268,12 @@ public class MyClient {
 		VoltTable [] results;
 		MyClient myc = new MyClient();
 		try {
-			myc.client.callProcedure("SignUp", 1001);
+			try {
+				myc.client.callProcedure("FindUserId", 1001);
+				myc.client.callProcedure("SignUp", 1001);
+			} catch (ProcCallException e) {
+				System.out.println(e.getMessage());
+			}
 			myc.api = myc.serverSocket.accept();
 			System.out.println("Connected to " + myc.api.getInetAddress());
 			myc.apiCall = new BufferedReader(new InputStreamReader(myc.api.getInputStream()));
@@ -285,11 +290,13 @@ public class MyClient {
 					if (vt.getColumnCount() == 1 && vt.getRowCount() == 1) {
 						long error = vt.asScalarLong();
 						j.put("data", jsonArray);
-						if (error == 0) //Currently a false positive
+						if (error < 0) {
 							j.put("error", "DB error");
+							j.put("success", 0);
+						}
 						else
 							j.put("error", "");
-						j.put("success", error);
+							j.put("success", 1);
 						rows.add(String.valueOf(vt.asScalarLong()));
 					}
 					else {
@@ -316,9 +323,6 @@ public class MyClient {
 			// put() throws this in the event of a null string or an incorrect type being passed
 			// as an argument.  The arguments are hard coded, so something catastrophic would have
 			// to occur.
-			e.printStackTrace();
-		} catch (ProcCallException e) {
-			System.out.println("Defined userid is already taken");
 			e.printStackTrace();
 		}
 	}
