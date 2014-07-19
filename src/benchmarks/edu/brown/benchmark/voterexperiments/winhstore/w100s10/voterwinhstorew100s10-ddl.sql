@@ -44,9 +44,10 @@ CREATE TABLE w_staging
 , state              varchar(2) NOT NULL -- REFERENCES area_code_state (state)
 , contestant_number  integer    NOT NULL REFERENCES contestants (contestant_number)
 , created            timestamp  NOT NULL
+, win_id             bigint     NOT NULL
 , CONSTRAINT PK_stage PRIMARY KEY
   (
-    vote_id
+    win_id
   )
 -- PARTITION BY ( phone_number )
 );
@@ -58,9 +59,10 @@ CREATE TABLE w_rows
 , state              varchar(2) NOT NULL -- REFERENCES area_code_state (state)
 , contestant_number  integer    NOT NULL REFERENCES contestants (contestant_number)
 , created            timestamp  NOT NULL
+, win_id             bigint     NOT NULL
 , CONSTRAINT PK_win PRIMARY KEY
   (
-    vote_id
+    win_id
   )
 -- PARTITION BY ( phone_number )
 );
@@ -71,10 +73,10 @@ CREATE TABLE staging_count
   cnt              int      NOT NULL
 );
 
-CREATE TABLE leaderboard
+CREATE TABLE current_win_id
 (
-  contestant_number  integer   NOT NULL
-, numvotes           integer   NOT NULL
+  row_id           int      NOT NULL,
+  win_id           bigint      NOT NULL
 );
 
 -- rollup of votes by phone number, used to reject excessive voting
@@ -105,4 +107,17 @@ AS
  GROUP BY contestant_number
         , state
 ;
+
+--CREATE VIEW v_leaderboard
+--(
+--  contestant_number
+--, num_votes
+--)
+--AS
+--   SELECT contestant_number
+--        , COUNT(*)
+--     FROM w_rows
+-- GROUP BY contestant_number
+--;
+
 

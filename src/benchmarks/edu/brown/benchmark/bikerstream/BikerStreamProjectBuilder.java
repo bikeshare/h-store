@@ -29,11 +29,18 @@
 
 package edu.brown.benchmark.bikerstream;
 
-import edu.brown.benchmark.bikerstream.procedures.*;
 import org.voltdb.VoltProcedure;
 
 import edu.brown.benchmark.AbstractProjectBuilder;
 import edu.brown.api.BenchmarkComponent;
+
+import edu.brown.benchmark.bikerstream.procedures.Initialize;
+import edu.brown.benchmark.bikerstream.procedures.SignUp;
+import edu.brown.benchmark.bikerstream.procedures.CheckoutBike;
+import edu.brown.benchmark.bikerstream.procedures.CheckinBike;
+import edu.brown.benchmark.bikerstream.procedures.RideBike;
+import edu.brown.benchmark.bikerstream.procedures.TestProcedure;
+import edu.brown.benchmark.bikerstream.procedures.LogRiderTrip;
 //import edu.brown.benchmark.bikerstream.procedures.InsertIntoBikeReadingsTableWinTrigger;
 
 public class BikerStreamProjectBuilder extends AbstractProjectBuilder {
@@ -49,21 +56,11 @@ public class BikerStreamProjectBuilder extends AbstractProjectBuilder {
     public static final Class<? extends VoltProcedure> PROCEDURES[] = (Class<? extends VoltProcedure>[])new Class<?>[]{
         Initialize.class,
         SignUp.class,
-        SignUpName.class,
-        SignUpRand.class,
         CheckoutBike.class,
         CheckinBike.class,
         RideBike.class,
         TestProcedure.class,
-        LogRiderTrip.class,
-        Bikes.class,
-        BikeStatus.class,
-        FindUser.class,
-        GetBikeStatus.class,
-        GetStationStatus.class,
-        Stations.class,
-        StationStatus.class,
-        Users.class
+        LogRiderTrip.class
 //        InsertIntoBikeReadingsTableWinTrigger.class,
     };
 
