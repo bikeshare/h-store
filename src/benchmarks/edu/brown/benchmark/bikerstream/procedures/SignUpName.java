@@ -30,6 +30,7 @@ import org.voltdb.ProcInfo;
 import org.voltdb.SQLStmt;
 import org.voltdb.VoltProcedure;
 import org.voltdb.VoltTable;
+import org.voltdb.VoltType;
 import org.voltdb.types.TimestampType;
 
 import java.util.Random;
@@ -50,7 +51,11 @@ public class SignUpName extends VoltProcedure
             "SELECT count(*) FROM users WHERE user_id = ?"
     );
 
-    public long run(String first, String last) {
+    public final SQLStmt id = new SQLStmt(
+        "SELECT user_id FROM users WHERE user_id = ?"
+    );
+
+    public VoltTable run(String first, String last) {
 
         Random gen = new Random();
         VoltTable result;
@@ -76,9 +81,9 @@ public class SignUpName extends VoltProcedure
                     first + " " +
                     last + " into the DB, error:" + e);
         }
-
-        return user_id;
-
+        VoltTable t = new VoltTable(new VoltTable.ColumnInfo("USER_ID", VoltType.BIGINT));
+        t.addRow(user_id);
+        return t;
     }
 
 }

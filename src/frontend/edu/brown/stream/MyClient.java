@@ -135,10 +135,10 @@ public class MyClient {
 		ArrayList<String> s = new ArrayList<String>();
 		final int colCount = vt.getColumnCount();
 		vt.resetRowPosition();
-		if (colCount == 1 && vt.getRowCount() == 1) {
+		/*if (colCount == 1 && vt.getRowCount() == 1) {
 			s.add(String.valueOf(vt.asScalarLong()));
 			return s;
-		}
+		}*/
 		while (vt.advanceRow()) {
 			for (int col = 0; col < colCount; col++) {
 				switch(vt.getColumnType(col)) {
@@ -267,13 +267,13 @@ public class MyClient {
 		JSONObject j;
 		VoltTable [] results;
 		MyClient myc = new MyClient();
-		try {
+		try {/*
 			try {
 				myc.client.callProcedure("FindUserId", 1001);
 				myc.client.callProcedure("SignUp", 1001);
 			} catch (ProcCallException e) {
 				System.out.println(e.getMessage());
-			}
+			}*/
 			myc.api = myc.serverSocket.accept();
 			System.out.println("Connected to " + myc.api.getInetAddress());
 			myc.apiCall = new BufferedReader(new InputStreamReader(myc.api.getInputStream()));
@@ -287,7 +287,9 @@ public class MyClient {
 				}
 				j = new JSONObject();
 				for (VoltTable vt: results) {
-					if (vt.getColumnCount() == 1 && vt.getRowCount() == 1) {
+					System.out.println("-" + vt.getColumnName(0) + "-");
+					System.out.println(vt.toString());
+					if (vt.hasColumn("")) {
 						long error = vt.asScalarLong();
 						j.put("data", jsonArray);
 						if (error < 0) {
