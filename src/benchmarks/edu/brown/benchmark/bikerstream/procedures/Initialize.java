@@ -48,31 +48,25 @@ public class Initialize extends VoltProcedure
     );
 
     public final SQLStmt initialStationStatus = new SQLStmt(
-        "INSERT INTO StationStatus (station_id, current_bikes, current_docks, current_discount) " +
-        "VALUES (?,?,?,?)"
+        "INSERT INTO StationStatus (station_id, current_bikes, current_docks, current_bike_discount, current_dock_discount) " +
+        "VALUES (?,?,?,?,?)"
 
     );
 
     public long run() {
 
-        int numBikes    = BikerStreamConstants.NUM_BIKES_PER_STATION;
-        int numDocks    = BikerStreamConstants.NUM_DOCKS_PER_STATION;
-        int numStations = BikerStreamConstants.STATION_NAMES.length;
+        int maxBikes    = BikerStreamConstants.NUM_BIKES_PER_STATION;
+        int maxStations = BikerStreamConstants.STATION_LOCATIONS.length;
 
-        for (int i = 0; i < numStations; ++i){
+        for (int i = 0; i < maxStations; ++i){
             // Insert the Station
-            voltQueueSQL(insertStation,
-                    i,
-                    BikerStreamConstants.STATION_NAMES[i],
-                    "ADRESS HERE",
-                    BikerStreamConstants.STATION_LATS[i],
-                    BikerStreamConstants.STATION_LONS[i]);
+            voltQueueSQL(insertStation, i+1, BikerStreamConstants.STATION_LOCATIONS[i], "ADRESS HERE", i, i);
 
             int j;
-            for (j = 0; j < numBikes; ++j) {
+            for (j = 0; j < 10; ++j) {
                 voltQueueSQL(insertBike, (i*1000) + j, 0);
             }
-            voltQueueSQL(initialStationStatus, i, numBikes, numDocks - numBikes, 0.0);
+            voltQueueSQL(initialStationStatus, i, j +1, 20 - (j+1), 0.0, 0.0);
             voltExecuteSQL();
         }
 

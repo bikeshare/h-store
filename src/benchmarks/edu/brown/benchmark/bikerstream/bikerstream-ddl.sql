@@ -17,7 +17,7 @@ CREATE TABLE StationStatus
     station_id            INTEGER NOT NULL REFERENCES stations(station_id)
 ,   current_bikes         INTEGER NOT NULL
 ,   current_docks         INTEGER NOT NULL
-,   current_discount      FLOAT   NOT NULL
+,   current_discount      INTEGER NOT NULL
 );
 
 -- Keep track of riders in the system.
@@ -77,4 +77,9 @@ CREATE TABLE userLocations (
     longitude FLOAT   NOT NULL
     );
 
+CREATE TABLE discounts
+(
+    user_id INTEGER NOT NULL REFERENCES users(user_id)
+,   station_id INTEGER NOT NULL REFERENCES stations(station_id)
+);
 
