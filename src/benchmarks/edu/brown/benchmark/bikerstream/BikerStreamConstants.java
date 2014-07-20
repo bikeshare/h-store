@@ -49,8 +49,8 @@ public abstract class BikerStreamConstants {
     // of zones, stations and docks.
     //
 
-    public static final int NUM_STATIONS = 10;
-    public static final int NUM_BIKES_PER_STATION = 20;
+    public static final int NUM_BIKES_PER_STATION = 6;
+    public static final int NUM_DOCKS_PER_STATION = 20;
 
     public static final String ROUTES_DIR =
             "src/benchmarks/edu/brown/benchmark/bikerstream/routes";
@@ -108,11 +108,11 @@ public abstract class BikerStreamConstants {
     // BIKE CHECKOUT
     //
 
-    public static final int MAX_CHECKOUT_ATTEMPTS = 5;
+    // The discount threshold is the number of bikes necessary at a station before discounts
+    // begin being added.
+    public static final long DISCOUNT_THRESHOLD = 5;
 
-    public static final long BIKE_CHECKEDOUT      = 0;
-    public static final long BIKE_NOT_CHECKEDOUT  = 1;
-    public static final long NO_AVAILIBLE_BIKES   = 2;
+    public static final long CHECKOUT_SUCCESS = 0;
 
     // ===========================================================================
     // BIKE RIDE

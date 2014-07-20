@@ -17,7 +17,7 @@ CREATE TABLE StationStatus
     station_id            INTEGER NOT NULL REFERENCES stations(station_id)
 ,   current_bikes         INTEGER NOT NULL
 ,   current_docks         INTEGER NOT NULL
-,   current_discount      FLOAT   NOT NULL
+,   current_discount      INTEGER NOT NULL
 );
 
 -- Keep track of riders in the system.
@@ -71,5 +71,9 @@ CREATE WINDOW bikerstream_window ON bikestatus ROWS 100 SLIDE 10;
 
 CREATE WINDOW lastNTuples ON bikestatus ROWS 100 SLIDE 10;
 
-
+CREATE TABLE discounts
+(
+    user_id INTEGER NOT NULL REFERENCES users(user_id)
+,   station_id INTEGER NOT NULL REFERENCES stations(station_id)
+);
 

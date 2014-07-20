@@ -88,8 +88,11 @@ public class BikerStreamClient extends BenchmarkComponent {
             // Create a new Rider Struct
             BikeRider rider = new BikeRider(rider_id);
 
-            long startStation = rider.getStartingStation();
-            long endStation   = rider.getFinalStation();
+            // Checkout a bike from the Biker's initial station
+            client.callProcedure(new BikerCallback(BikerStreamConstants.CheckoutCallback, rider_id),
+                    "CheckoutBike",
+                    rider.getRiderId(),
+                    rider.getStartingStation());
 
             // Sign the rider up, by sticking rider information into the DB
             client.callProcedure(new SignUpCallback(), "SignUp",  rider.getRiderId());
@@ -100,15 +103,56 @@ public class BikerStreamClient extends BenchmarkComponent {
             Reading point;
             long time_t;
 
-            while (rider.hasPoints()) {
+            // The biker trip is deivided into legs. after each leg the biker will stop to see if any nearby stations
+            // are providing discounts. If so the biker should deviate toward that station. If there are no more legs
+            // available then the rider is considered to be at the final destination and should attempt to checkin the
+            // bike.
+            while ((route = rider.getNextRoute()) != null) {
+
+                // As long as there are points in the current leg, put them into the data base at a rate specified by
+                // the MILI_BETWEEN_GPS_EVENTS Constant.
+                while ((point = route.poll()) != null){
+                    client.callProcedure(new BikerCallback(BikerStreamConstants.RideBikeCallback),
+                            "RideBike",
+                            rider.getRiderId(),
+                            point.lat,
+                            point.lon);
+                    long lastTime = (new TimestampType()).getMSTime();
+                    while (((new TimestampType()).getMSTime()) - lastTime < BikerStreamConstants.MILI_BETWEEN_GPS_EVENTS) {}
+                }
 
                 point = rider.getPoint();
                 client.callProcedure(new RideCallback(), "RideBike",  rider.getRiderId(), point.lat, point.lon);
 
-                // Sit and spin for specified time, to ensure spacing of gps points
-                long lastTime = (new TimestampType()).getMSTime();
-                while (((time_t = (new TimestampType()).getMSTime()) - lastTime) < BikerStreamConstants.MILI_BETWEEN_GPS_EVENTS) {}
+            // When all legs of the journey are finished. Attempt to park the bike. The callback will handle whether or
+            //not we were successfull.
+            client.callProcedure(new BikerCallback(BikerStreamConstants.CheckinCallback, rider_id),
+                    "CheckinBike",
+                    rider.getRiderId(),
+                    rider.getFinalStation());
 
+            // The handle will insert our bike id into the hashmap when we are successful.
+            while (!(checkedBikeSet.contains(rider_id))){
+
+                // Deviate course if we did not appear in the hashmap. We will receive a new route to the next station.
+                route = rider.deviateRandomly();
+
+                // Put those points into the DB
+                while ((point = route.poll()) != null){
+                    client.callProcedure(new BikerCallback(BikerStreamConstants.RideBikeCallback),
+                            "RideBike",
+                            rider.getRiderId(),
+                            point.lat,
+                            point.lon);
+                    long lastTime = (new TimestampType()).getMSTime();
+                    while (((new TimestampType()).getMSTime()) - lastTime < BikerStreamConstants.MILI_BETWEEN_GPS_EVENTS) {}
+                }
+
+                // Try again to checkin the bike. Loop to check for success
+                client.callProcedure(new BikerCallback(BikerStreamConstants.CheckinCallback, rider_id),
+                        "CheckinBike",
+                        rider.getRiderId(),
+                        rider.getFinalStation());
             }
 
                 client.callProcedure(new CheckinCallback(), "CheckinBike",  rider.getRiderId(), rider.getFinalStation());
@@ -125,12 +169,10 @@ public class BikerStreamClient extends BenchmarkComponent {
     public String[] getTransactionDisplayNames() {
         // Return an array of transaction names
         String procNames[] = new String[]{
-            "SignUp",
-            "CheckoutBike",
-            "RideBike",
-            "CheckinBike",
-            "TestProcedure",
-            "LogRiderTrip"
+            "Riders signed up",
+            "Bikes checked out",
+            "Points added to the DB",
+            "Bikes checked in",
         };
         return (procNames);
     }

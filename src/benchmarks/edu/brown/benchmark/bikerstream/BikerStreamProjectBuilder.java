@@ -34,15 +34,6 @@ import org.voltdb.VoltProcedure;
 import edu.brown.benchmark.AbstractProjectBuilder;
 import edu.brown.api.BenchmarkComponent;
 
-import edu.brown.benchmark.bikerstream.procedures.Initialize;
-import edu.brown.benchmark.bikerstream.procedures.SignUp;
-import edu.brown.benchmark.bikerstream.procedures.CheckoutBike;
-import edu.brown.benchmark.bikerstream.procedures.CheckinBike;
-import edu.brown.benchmark.bikerstream.procedures.RideBike;
-import edu.brown.benchmark.bikerstream.procedures.TestProcedure;
-import edu.brown.benchmark.bikerstream.procedures.LogRiderTrip;
-//import edu.brown.benchmark.bikerstream.procedures.InsertIntoBikeReadingsTableWinTrigger;
-
 public class BikerStreamProjectBuilder extends AbstractProjectBuilder {
 
     // REQUIRED: Retrieved via reflection by BenchmarkController
@@ -60,7 +51,16 @@ public class BikerStreamProjectBuilder extends AbstractProjectBuilder {
         CheckinBike.class,
         RideBike.class,
         TestProcedure.class,
-        LogRiderTrip.class
+        LogRiderTrip.class,
+        Bikes.class,
+        BikeStatus.class,
+        FindUser.class,
+        GetBikeStatus.class,
+        GetStationStatus.class,
+        Stations.class,
+        StationStatus.class,
+        Users.class,
+        AcceptDiscount.class
 //        InsertIntoBikeReadingsTableWinTrigger.class,
     };
 
