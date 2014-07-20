@@ -29,7 +29,6 @@
 
 package edu.brown.benchmark.bikerstream;
 
-import edu.brown.benchmark.bikerstream.procedures.*;
 import org.voltdb.VoltProcedure;
 
 import edu.brown.benchmark.AbstractProjectBuilder;
@@ -48,8 +47,6 @@ public class BikerStreamProjectBuilder extends AbstractProjectBuilder {
     public static final Class<? extends VoltProcedure> PROCEDURES[] = (Class<? extends VoltProcedure>[])new Class<?>[]{
         Initialize.class,
         SignUp.class,
-        SignUpName.class,
-        SignUpRand.class,
         CheckoutBike.class,
         CheckinBike.class,
         RideBike.class,

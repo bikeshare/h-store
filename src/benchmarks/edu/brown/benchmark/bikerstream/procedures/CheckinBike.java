@@ -70,7 +70,7 @@ public class CheckinBike extends VoltProcedure {
         voltQueueSQL(getStation, station_id);
         VoltTable results[] = voltExecuteSQL();
 
-        //assert(results[0].getRowCount() == 1);
+        assert(results[0].getRowCount() == 1);
 
         long numBikes = results[0].fetchRow(0).getLong("current_bikes");
         long numDocks = results[0].fetchRow(0).getLong("current_docks");
