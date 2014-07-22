@@ -55,6 +55,10 @@ public abstract class BikerStreamConstants {
     // of zones, stations and docks.
     //
 
+    public static final long SECONDS_TILL_GAME_TIME = 20;
+    public static final int MAX_DECISION_POINTS = 5;
+    public static final int GAME_TIME_STATION = 3;
+
     public static final int NUM_BIKES_PER_STATION = 6;
     public static final int NUM_DOCKS_PER_STATION = 20;
 

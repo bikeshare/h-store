@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.apache.log4j.Logger;
 import org.voltdb.VoltTable;
 import org.voltdb.client.Client;
 import org.voltdb.client.ClientResponse;
@@ -47,6 +48,7 @@ import edu.brown.benchmark.bikerstream.BikeRider.*;
 
 public class BikerStreamClient extends BenchmarkComponent {
 
+    public static final Logger Log  = Logger.getLogger(BikerStreamClient.class);
     // Bike Readings
     AtomicLong failure = new AtomicLong(0);
 
@@ -93,6 +95,7 @@ public class BikerStreamClient extends BenchmarkComponent {
                 rider_id = cr.getResults()[0].asScalarLong();
             else
                 return false;
+
 
             // Create the rider using the id returned from the signup procedure
             BikeRider rider = new BikeRider(rider_id);

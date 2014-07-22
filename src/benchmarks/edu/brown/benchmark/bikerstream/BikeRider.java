@@ -31,6 +31,8 @@
 package edu.brown.benchmark.bikerstream;
 
 import org.apache.commons.lang.ArrayUtils;
+import org.hsqldb.types.TimestampData;
+import org.voltdb.types.TimestampType;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -48,16 +50,6 @@ import java.util.Random;
  * from a bike GPS unit.
  */
 public class BikeRider {
-
-    /**
-     * TODO: I think we could really benefit by reading in one file of points at a time.
-     * This will save memory and make it easier to deviate from our current path.
-     *
-     * TODO: Keep track of current location state
-     * In order to deviate from the path, we need to know where we are starting from
-     * therefore we should have some type keep track of which waypoint we have just left from.
-     * When all points have been exhasted, increment the waypoint counter and pull in more points.
-     */
 
     // Store the ID for this rider, more likely than not to be
     // a random number.
@@ -80,6 +72,11 @@ public class BikeRider {
       */
     private int currentIndex;
 
+    private static final long timer;
+
+    static {
+        timer = (new TimestampType()).getMSTime() + (BikerStreamConstants.SECONDS_TILL_GAME_TIME * 1000);
+    }
 
     private static int numStations = BikerStreamConstants.STATION_NAMES.length;
     private static int numChoices  = BikerStreamConstants.DP_NAMES.length;
@@ -97,17 +94,36 @@ public class BikeRider {
     public BikeRider(long rider_id) throws IOException {
         this.rider_id = rider_id;
         this.currentIndex = 0;
+        long time = (new TimestampType()).getMSTime();
 
-        comment("Generating Route");
-        genRandStations();
-        comment("Route Generated");
+
+        if (BikerStreamConstants.SECONDS_TILL_GAME_TIME == 0){
+            comment("Generating Route");
+            comment("Time is: " + time);
+            genRandStations();
+            comment("Route Generated");
+        } else if (timer < (new TimestampType()).getMSTime()){
+            comment("Generating Route");
+            comment("Time is: " + time);
+            genRandStations(BikerStreamConstants.GAME_TIME_STATION);
+            comment("Route Generated");
+        } else {
+            comment("Generating Route");
+            comment("Time is: " + time);
+            genRandStations();
+            comment("Route Generated");
+        }
+
+
     }
 
     public BikeRider(long rider_id, int start_station, int end_station, int[] choices) throws IOException {
         this.rider_id = rider_id;
         this.currentIndex = 0;
+        long time = (new TimestampType()).getMSTime();
 
         comment("Generating Route");
+        comment("Time is: " + time);
         int[] temp = ArrayUtils.addAll(new int[]{start_station}, choices);
         waypoints  = ArrayUtils.addAll(temp, new int[]{end_station});
         comment("Route Generated");
@@ -115,21 +131,25 @@ public class BikeRider {
 
     // Rider ID functions
     // returns the rider's id number
-    public long getRiderId() {
+    public long getRiderId(){
         return rider_id;
     }
 
     // Get the starting/final stations
-    public long getStartingStation() {
+    public long getStartingStation(){
         return this.waypoints[0];
     }
 
-    public long getFinalStation() {
+    public long getFinalStation(){
         return this.waypoints[waypoints.length -1];
     }
 
     public int[] getWaypoints(){
         return this.waypoints;
+    }
+
+    public long getTimer(){
+        return timer;
     }
 
     public void comment(String str){
@@ -206,10 +226,15 @@ public class BikeRider {
 
     private void genRandStations(){
         Random gen = new Random();
-        int numDecisions = gen.nextInt(3);
+        int start = gen.nextInt(numStations);
+        genRandStations(start);
+    }
+
+    private void genRandStations(int start){
+        Random gen = new Random();
+        int numDecisions = gen.nextInt(BikerStreamConstants.MAX_DECISION_POINTS);
 
         // TODO: VERIFY (numStations || numStations -1)
-        int start = gen.nextInt(numStations);
         int[] decisions = new int[numDecisions];
 
         for (int i = 0; i < numDecisions; ++i){
