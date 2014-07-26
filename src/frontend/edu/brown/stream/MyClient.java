@@ -223,13 +223,13 @@ public class MyClient {
 			while (!found) {
 				c = apiCall.read();
 				if ((char) c == '\n') {
-					System.out.println(procedureName);
+					//System.out.println(procedureName);
 					return procedureName += (char) c;
 				}
 				if (c == -1)
 					return null;
 				procedureName += (char) c;
-				System.out.println(procedureName);
+				//System.out.println(procedureName);
 			}
 			return procedureName;
 		} catch (IOException e) {
@@ -350,6 +350,8 @@ public class MyClient {
 				System.out.println("Received input stream");
 				while ((results = myc.callStoredProcedure(calledProc)) == null) {
 					proc = myc.readString();
+					System.out.println("Creating new json object");
+                    calledProc = new JSONObject(proc);
 				}
 				j = new JSONObject();
 				for (VoltTable vt: results) {
