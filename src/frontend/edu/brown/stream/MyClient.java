@@ -55,7 +55,7 @@ import edu.brown.logging.LoggerUtil.LoggerBoolean;
 import edu.brown.utils.CollectionUtil;
 
 
-public class MyClient {
+public class MyClient /*implements Runnable*/ {
 	final int port;
 	Catalog catalog;
 	Client client;
@@ -63,6 +63,7 @@ public class MyClient {
 	ServerSocket serverSocket;
 	Socket api; //Connection to the Rest API
 	InputStreamReader apiCall;
+	OutputStreamWriter out;
 	public static final long FAILED_CHECKOUT = -1;
     public static final long FAILED_CHECKIN = -2;
     public static final long FAILED_SIGNUP = -3;
@@ -203,6 +204,8 @@ public class MyClient {
 				System.out.println("Received a null string");
 				api.close();
 				api = serverSocket.accept(); //Client likely disconnected
+				System.out.println("Out buffer size: " + api.getSendBufferSize());
+				out = new OutputStreamWriter(api.getOutputStream(), "UTF-8");
 				System.out.println("Connected to " + api.getInetAddress());
 				apiCall = new InputStreamReader(api.getInputStream(), "UTF-8");
 			}
@@ -226,14 +229,19 @@ public class MyClient {
 					//System.out.println(procedureName);
 					return procedureName += (char) c;
 				}
-				if (c == -1)
-					return null;
+				if (c == -1) {
+					System.out.println("Read a -1:" + procedureName + ":");
+					if (procedureName == "") 
+						return null;
+					return procedureName;
+				}
 				procedureName += (char) c;
 				//System.out.println(procedureName);
 			}
 			return procedureName;
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
+			System.out.println(api.toString());
 			e.printStackTrace();
 			return null;
 		}
@@ -241,13 +249,15 @@ public class MyClient {
 	
 	public void sendJSON(JSONObject j) {
 		String jsonMessage = (j.toString() + "\n");
-		System.out.println(jsonMessage);
+        System.out.println(jsonMessage);
 		try {
-			OutputStreamWriter out = new OutputStreamWriter(api.getOutputStream(), "UTF-8");
+			//OutputStreamWriter out = new OutputStreamWriter(api.getOutputStream(), "UTF-8");
+			System.out.println(jsonMessage.length());
 			out.write(jsonMessage, 0, jsonMessage.length());
 			out.flush();
 		} catch (IOException e) {
 			System.out.println("Unable to write to the Rest client");
+			System.out.println(api.toString());
 			e.printStackTrace();
 		}
 	}
@@ -295,7 +305,7 @@ public class MyClient {
 		int port = -1;
 
 		// Fixed hostname
-		if (host != null) {
+		if (host != null) {	
 			if (host.contains(":")) {
 				String split[] = host.split("\\:", 2);
 				hostname = split[0];
@@ -334,6 +344,74 @@ public class MyClient {
 	}
 	
 	public static void main(String [] args) {
+		String proc;
+		JSONObject j;
+		VoltTable [] results;
+		MyClient myc = new MyClient();
+		try {
+			myc.api = myc.serverSocket.accept();
+			myc.out = new OutputStreamWriter(myc.api.getOutputStream(), "UTF-8");
+			System.out.println("Out buffer size: " + myc.api.getSendBufferSize());
+			System.out.println("Connected to " + myc.api.getInetAddress());
+			myc.apiCall = new InputStreamReader(myc.api.getInputStream(), "UTF-8");
+			while (true) {
+				ArrayList<String> rows = new ArrayList<String>();
+				JSONArray jsonArray = new JSONArray();
+				proc = myc.readString();
+				JSONObject calledProc = new JSONObject(proc);
+				System.out.println("Received input stream");
+				while ((results = myc.callStoredProcedure(calledProc)) == null) {
+					proc = myc.readString();
+					System.out.println("Creating new json object");
+                    calledProc = new JSONObject(proc);
+				}
+				j = new JSONObject();
+				for (VoltTable vt: results) {
+					if (vt.hasColumn("")) {
+						long error = vt.asScalarLong();
+						if (error < 0) {
+							j.put("error", myc.errorMessage(error, calledProc));
+							j.put("success", 0);
+						} else if (error > 0){
+							j.put("error", "");
+							j.put("success", 1);
+							jsonArray.put(error);
+						} else {
+							j.put("error", "");
+							j.put("success", 1);
+						}
+						j.put("data", jsonArray);
+						rows.add(String.valueOf(vt.asScalarLong()));
+					} else {
+						for (String s: myc.parseResults(vt)) {
+							jsonArray.put(new JSONObject(s));
+						}
+						j.put("data", jsonArray);
+						j.put("error", "");
+						j.put("success", 1);
+					}
+					System.out.println("Sending json to " + myc.api.toString());
+					System.out.println("Called procedure " + proc);
+					myc.sendJSON(j);
+					System.out.println("Done sending rows");
+				}
+			}
+		} catch (NoConnectionsException e) {
+			System.out.println("Failure to create S-Store client connection");
+			e.printStackTrace();
+		} catch (IOException e) {
+			System.out.println("Unable to connect to Rest client");
+			e.printStackTrace();
+		} catch (JSONException e) {
+			// This exception should never get thrown.
+			// put() throws this in the event of a null string or an incorrect type being passed
+			// as an argument.  The arguments are hard coded, so something catastrophic would have
+			// to occur.
+			e.printStackTrace();
+		}
+	}
+	/*
+	public void run() {
 		String proc;
 		JSONObject j;
 		VoltTable [] results;
@@ -397,5 +475,5 @@ public class MyClient {
 			// to occur.
 			e.printStackTrace();
 		}
-	}
+	}*/
 }
