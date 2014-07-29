@@ -109,6 +109,16 @@ public abstract class BikerStreamConstants {
 
     public static final String[] ALL_STOPS = (String[]) ArrayUtils.addAll(STATION_NAMES, DP_NAMES);
 
+    public static final String[] STATION_LOCATIONS = new String[] {
+        "OHSU_South_Waterfront",
+        "Waterfront_Park",
+        "Eastbank_Esplanade",
+        "Moda_Center",
+        "Portland_State_University",
+        "Overlook_Park",
+        "Civic_Stadium",
+    };
+
 
     // ===========================================================================
     // SIGNUP
