@@ -47,7 +47,6 @@ import org.voltdb.utils.VoltTypeUtil;
 
 import java.nio.charset.*;
 
-import edu.brown.benchmark.bikerstream.BikerStreamConstants;
 import edu.brown.catalog.CatalogUtil;
 import edu.brown.hstore.HStoreConstants;
 import edu.brown.hstore.Hstoreservice.Status;
@@ -63,6 +62,7 @@ public class MyClient {
 	ServerSocket serverSocket;
 	Socket api; //Connection to the Rest API
 	InputStreamReader apiCall;
+	OutputStreamWriter out;
 	public static final long FAILED_CHECKOUT = -1;
     public static final long FAILED_CHECKIN = -2;
     public static final long FAILED_SIGNUP = -3;
@@ -203,6 +203,8 @@ public class MyClient {
 				System.out.println("Received a null string");
 				api.close();
 				api = serverSocket.accept(); //Client likely disconnected
+				System.out.println("Out buffer size: " + api.getSendBufferSize());
+				out = new OutputStreamWriter(api.getOutputStream(), "UTF-8");
 				System.out.println("Connected to " + api.getInetAddress());
 				apiCall = new InputStreamReader(api.getInputStream(), "UTF-8");
 			}
@@ -223,17 +225,20 @@ public class MyClient {
 			while (!found) {
 				c = apiCall.read();
 				if ((char) c == '\n') {
-					System.out.println(procedureName);
 					return procedureName += (char) c;
 				}
-				if (c == -1)
-					return null;
+				if (c == -1) {
+					System.out.println("Read a -1:" + procedureName + ":");
+					if (procedureName == "") 
+						return null;
+					return procedureName;
+				}
 				procedureName += (char) c;
-				System.out.println(procedureName);
 			}
 			return procedureName;
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
+			System.out.println(api.toString());
 			e.printStackTrace();
 			return null;
 		}
@@ -241,13 +246,14 @@ public class MyClient {
 	
 	public void sendJSON(JSONObject j) {
 		String jsonMessage = (j.toString() + "\n");
-		System.out.println(jsonMessage);
+        System.out.println(jsonMessage);
 		try {
-			OutputStreamWriter out = new OutputStreamWriter(api.getOutputStream(), "UTF-8");
+			System.out.println(jsonMessage.length());
 			out.write(jsonMessage, 0, jsonMessage.length());
 			out.flush();
 		} catch (IOException e) {
 			System.out.println("Unable to write to the Rest client");
+			System.out.println(api.toString());
 			e.printStackTrace();
 		}
 	}
@@ -295,7 +301,7 @@ public class MyClient {
 		int port = -1;
 
 		// Fixed hostname
-		if (host != null) {
+		if (host != null) {	
 			if (host.contains(":")) {
 				String split[] = host.split("\\:", 2);
 				hostname = split[0];
@@ -340,6 +346,8 @@ public class MyClient {
 		MyClient myc = new MyClient();
 		try {
 			myc.api = myc.serverSocket.accept();
+			myc.out = new OutputStreamWriter(myc.api.getOutputStream(), "UTF-8");
+			System.out.println("Out buffer size: " + myc.api.getSendBufferSize());
 			System.out.println("Connected to " + myc.api.getInetAddress());
 			myc.apiCall = new InputStreamReader(myc.api.getInputStream(), "UTF-8");
 			while (true) {
@@ -350,6 +358,8 @@ public class MyClient {
 				System.out.println("Received input stream");
 				while ((results = myc.callStoredProcedure(calledProc)) == null) {
 					proc = myc.readString();
+					System.out.println("Creating new json object");
+                    calledProc = new JSONObject(proc);
 				}
 				j = new JSONObject();
 				for (VoltTable vt: results) {

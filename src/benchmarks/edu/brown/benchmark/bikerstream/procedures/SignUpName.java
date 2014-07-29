@@ -53,10 +53,11 @@ public class SignUpName extends VoltProcedure
             "SELECT count(*) FROM users WHERE user_id = ?"
     );
 
-    public long run(String first, String last) {
+    public VoltTable run(String first, String last) {
 
         Random gen = new Random();
         VoltTable result;
+        VoltTable vt;
         String full = first + " " + last;
         long user_id = 0;
 
@@ -71,10 +72,15 @@ public class SignUpName extends VoltProcedure
             voltExecuteSQL(true);
 
         } catch (Exception e) {
-            return BikerStreamConstants.FAILED_SIGNUP;
+            vt = new VoltTable(new VoltTable.ColumnInfo("", VoltType.INTEGER));
+            vt.addRow(BikerStreamConstants.FAILED_SIGNUP);
+            return vt;
+            //return BikerStreamConstants.FAILED_SIGNUP;
         }
 
-        return user_id;
+        vt = new VoltTable(new VoltTable.ColumnInfo("USER_ID", VoltType.INTEGER));
+        vt.addRow(user_id);
+        return vt;
 
     }
 
