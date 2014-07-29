@@ -47,7 +47,6 @@ import org.voltdb.utils.VoltTypeUtil;
 
 import java.nio.charset.*;
 
-import edu.brown.benchmark.bikerstream.BikerStreamConstants;
 import edu.brown.catalog.CatalogUtil;
 import edu.brown.hstore.HStoreConstants;
 import edu.brown.hstore.Hstoreservice.Status;
@@ -55,7 +54,7 @@ import edu.brown.logging.LoggerUtil.LoggerBoolean;
 import edu.brown.utils.CollectionUtil;
 
 
-public class MyClient /*implements Runnable*/ {
+public class MyClient {
 	final int port;
 	Catalog catalog;
 	Client client;
@@ -410,70 +409,4 @@ public class MyClient /*implements Runnable*/ {
 			e.printStackTrace();
 		}
 	}
-	/*
-	public void run() {
-		String proc;
-		JSONObject j;
-		VoltTable [] results;
-		MyClient myc = new MyClient();
-		try {
-			myc.api = myc.serverSocket.accept();
-			System.out.println("Connected to " + myc.api.getInetAddress());
-			myc.apiCall = new InputStreamReader(myc.api.getInputStream(), "UTF-8");
-			while (true) {
-				ArrayList<String> rows = new ArrayList<String>();
-				JSONArray jsonArray = new JSONArray();
-				proc = myc.readString();
-				JSONObject calledProc = new JSONObject(proc);
-				System.out.println("Received input stream");
-				while ((results = myc.callStoredProcedure(calledProc)) == null) {
-					proc = myc.readString();
-					System.out.println("Creating new json object");
-                    calledProc = new JSONObject(proc);
-				}
-				j = new JSONObject();
-				for (VoltTable vt: results) {
-					if (vt.hasColumn("")) {
-						long error = vt.asScalarLong();
-						if (error < 0) {
-							j.put("error", myc.errorMessage(error, calledProc));
-							j.put("success", 0);
-						} else if (error > 0){
-							j.put("error", "");
-							j.put("success", 1);
-							jsonArray.put(error);
-						} else {
-							j.put("error", "");
-							j.put("success", 1);
-						}
-						j.put("data", jsonArray);
-						rows.add(String.valueOf(vt.asScalarLong()));
-					} else {
-						for (String s: myc.parseResults(vt)) {
-							jsonArray.put(new JSONObject(s));
-						}
-						j.put("data", jsonArray);
-						j.put("error", "");
-						j.put("success", 1);
-					}
-					System.out.println("Sending json to " + myc.api.toString());
-					System.out.println("Called procedure " + proc);
-					myc.sendJSON(j);
-					System.out.println("Done sending rows");
-				}
-			}
-		} catch (NoConnectionsException e) {
-			System.out.println("Failure to create S-Store client connection");
-			e.printStackTrace();
-		} catch (IOException e) {
-			System.out.println("Unable to connect to Rest client");
-			e.printStackTrace();
-		} catch (JSONException e) {
-			// This exception should never get thrown.
-			// put() throws this in the event of a null string or an incorrect type being passed
-			// as an argument.  The arguments are hard coded, so something catastrophic would have
-			// to occur.
-			e.printStackTrace();
-		}
-	}*/
 }

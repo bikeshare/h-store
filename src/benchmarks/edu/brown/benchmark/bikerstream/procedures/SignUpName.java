@@ -57,6 +57,7 @@ public class SignUpName extends VoltProcedure
 
         Random gen = new Random();
         VoltTable result;
+        VoltTable vt;
         String full = first + " " + last;
         long user_id = 0;
 
@@ -71,7 +72,7 @@ public class SignUpName extends VoltProcedure
             voltExecuteSQL(true);
 
         } catch (Exception e) {
-            VoltTable vt = new VoltTable(new VoltTable.ColumnInfo("", VoltType.INTEGER));
+            vt = new VoltTable(new VoltTable.ColumnInfo("", VoltType.INTEGER));
             vt.addRow(BikerStreamConstants.FAILED_SIGNUP);
             return vt;
             //return BikerStreamConstants.FAILED_SIGNUP;
