@@ -225,7 +225,6 @@ public class MyClient {
 			while (!found) {
 				c = apiCall.read();
 				if ((char) c == '\n') {
-					//System.out.println(procedureName);
 					return procedureName += (char) c;
 				}
 				if (c == -1) {
@@ -235,7 +234,6 @@ public class MyClient {
 					return procedureName;
 				}
 				procedureName += (char) c;
-				//System.out.println(procedureName);
 			}
 			return procedureName;
 		} catch (IOException e) {
@@ -250,7 +248,6 @@ public class MyClient {
 		String jsonMessage = (j.toString() + "\n");
         System.out.println(jsonMessage);
 		try {
-			//OutputStreamWriter out = new OutputStreamWriter(api.getOutputStream(), "UTF-8");
 			System.out.println(jsonMessage.length());
 			out.write(jsonMessage, 0, jsonMessage.length());
 			out.flush();
