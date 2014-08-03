@@ -33,8 +33,8 @@ import org.voltdb.VoltTable;
 /**
  * This VoltProcedure will trigger on INSERT INTO s2 STREAM and check the speed limit
  */
-public class DetectStolen extends VoltProcedure {
-    private static final Logger LOG = Logger.getLogger(DetectStolen.class);
+public class DetectAnomalies extends VoltProcedure {
+    private static final Logger LOG = Logger.getLogger(DetectAnomalies.class);
 
     protected void toSetTriggerTableName() {
         addTriggerTable("s2");
@@ -53,7 +53,7 @@ public class DetectStolen extends VoltProcedure {
     );
 
     public long run() {
-        LOG.info(" >>> Start running &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&" + this.getClass().getSimpleName());
+        LOG.debug(" >>> Start running " + this.getClass().getSimpleName());
         voltQueueSQL(getOverSpeed);
         VoltTable anomalies[] = voltExecuteSQL();
 

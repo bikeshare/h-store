@@ -27,6 +27,7 @@ package edu.brown.benchmark.bikerstream.procedures;
 import org.apache.log4j.Logger;
 import org.voltdb.SQLStmt;
 import org.voltdb.VoltProcedure;
+import org.voltdb.VoltTable;
 
 /**
  * This VoltProcedure will trigger on INSERT INTO bikeStatus STREAM and performs the following;
@@ -40,6 +41,14 @@ public class ProcessBikeStatus extends VoltProcedure {
     protected void toSetTriggerTableName() {
         addTriggerTable("bikeStatus");
     }
+
+    public final SQLStmt getUserFromBikeStatus = new SQLStmt(
+            "SELECT user_id FROM bikeStatus;"
+    );
+
+    public final SQLStmt removeRiderPositions = new SQLStmt(
+            "DELETE FROM riderPositions WHERE user_id = ?;"
+    );
 
     public final SQLStmt insertRiderPositions = new SQLStmt(
             "INSERT INTO riderPositions (user_id, latitude, longitude) " +
@@ -66,6 +75,16 @@ public class ProcessBikeStatus extends VoltProcedure {
 
     public long run() {
         LOG.debug(" >>> Start running " + this.getClass().getSimpleName());
+        voltQueueSQL(getUserFromBikeStatus);
+        VoltTable users[] = voltExecuteSQL();
+
+        long user_id;
+        for (int i = 0; i < users[0].getRowCount(); i++) {
+            user_id = users[0].fetchRow(0).getLong("user_id");
+            voltQueueSQL(removeRiderPositions, user_id);
+            voltExecuteSQL();
+        }
+
         voltQueueSQL(insertRiderPositions);
         voltExecuteSQL();
 
@@ -77,8 +96,7 @@ public class ProcessBikeStatus extends VoltProcedure {
 
         // For verification purpose
         voltQueueSQL(checkW1);
-        LOG.info("Summary of w1 WINDOW's content: "  + voltExecuteSQL()[0]);
-
+        LOG.info("Summary of w1 WINDOW's content: " + voltExecuteSQL()[0]);
 
         voltQueueSQL(removeUsedBikeStatusTuple);
         voltExecuteSQL(true);

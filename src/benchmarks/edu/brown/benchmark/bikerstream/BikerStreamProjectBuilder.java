@@ -71,15 +71,8 @@ public class BikerStreamProjectBuilder extends AbstractProjectBuilder {
         UpdateRiderLocations.class,
         ProcessBikeStatus.class,
         CalculateSpeed.class,
-        DetectStolen.class
-//        InsertIntoBikeReadingsTableWinTrigger.class,
+        DetectAnomalies.class
     };
-
-    {
-    // nothing to do here - code saved as
-    // placeholder/reminder
-        //addTransactionFrequency(Vote.class, 100);
-    }
 
     // a list of tables used in this benchmark with corresponding partitioning keys
     public static final String PARTITIONING[][] = new String[][] {
