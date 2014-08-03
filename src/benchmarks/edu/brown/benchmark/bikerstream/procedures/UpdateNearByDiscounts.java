@@ -56,11 +56,11 @@ public class UpdateNearByDiscounts extends VoltProcedure {
     );
 
     public final SQLStmt clearUserNearByDiscounts = new SQLStmt(
-            "DELETE FROM NearByDiscounts WHERE user_id = ?;"
+            "DELETE FROM nearByDiscounts WHERE user_id = ?;"
     );
 
     public final SQLStmt getNearByDiscountsByUser = new SQLStmt(
-            "SELECT * FROM NearByDiscounts WHERE user_id = ?;"
+            "SELECT * FROM nearByDiscounts WHERE user_id = ?;"
     );
 
     public final SQLStmt removeUsedS1Tuple = new SQLStmt("" +
@@ -68,7 +68,7 @@ public class UpdateNearByDiscounts extends VoltProcedure {
     );
 
     public long run() {
-        //LOG.debug(" >>> Start running " + this.getClass().getSimpleName());
+        LOG.debug(" >>> Start running " + this.getClass().getSimpleName());
         // Get a handle on the new tuple
         voltQueueSQL(getUserFromS1);
         VoltTable coordinates[] = voltExecuteSQL();

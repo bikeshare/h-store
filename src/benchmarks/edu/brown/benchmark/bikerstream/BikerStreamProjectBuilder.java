@@ -68,7 +68,10 @@ public class BikerStreamProjectBuilder extends AbstractProjectBuilder {
         AcceptDiscount.class,
         UserLocations.class,
         GetNearDiscounts.class,
-        UpdateRiderLocations.class
+        UpdateRiderLocations.class,
+        ProcessBikeStatus.class,
+        CalculateSpeed.class,
+        DetectStolen.class
 //        InsertIntoBikeReadingsTableWinTrigger.class,
     };
 
@@ -81,8 +84,10 @@ public class BikerStreamProjectBuilder extends AbstractProjectBuilder {
     // a list of tables used in this benchmark with corresponding partitioning keys
     public static final String PARTITIONING[][] = new String[][] {
         { "bikestatus", "user_id" },
-        { "bikerstream_window", "user_id"},
-        { "s1", "user_id"}
+        { "s1", "user_id"},
+        { "s2", "user_id"},
+        { "s3", "user_id"},
+        { "w1", "user_id"}
     };
 
     public BikerStreamProjectBuilder() {

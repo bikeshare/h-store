@@ -33,7 +33,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * This VoltProcedure will trigger on INSERT INTO bikeStatus STREAM and performs the following;
+ * This VoltProcedure will trigger on INSERT INTO s3 STREAM and performs the following;
  *   a.  Replaces the TOP N near by stations for a given user in the nearByStations TABLE
  *   b.  Feeds the user_id to s1 STREAM.
  */
@@ -41,11 +41,11 @@ public class UpdateNearByStations extends VoltProcedure {
     private static final Logger LOG = Logger.getLogger(UpdateNearByStations.class);
 
     protected void toSetTriggerTableName() {
-        addTriggerTable("bikeStatus");
+        addTriggerTable("s3");
     }
 
     public final SQLStmt getBikeCoordinate = new SQLStmt(
-            "SELECT user_id, latitude, longitude FROM bikeStatus;"
+            "SELECT user_id, latitude, longitude FROM s3;"
     );
 
     public final SQLStmt getAllStationsCoordinate = new SQLStmt(
@@ -53,27 +53,27 @@ public class UpdateNearByStations extends VoltProcedure {
     );
 
     public final SQLStmt clearUserNearByStations = new SQLStmt(
-            "DELETE FROM NearByStations WHERE user_id = ?;"
+            "DELETE FROM nearByStations WHERE user_id = ?;"
     );
 
     public final SQLStmt insertNearByStations = new SQLStmt(
-            "INSERT INTO NearByStations (user_id, station_id) VALUES (?, ?);"
+            "INSERT INTO nearByStations (user_id, station_id) VALUES (?, ?);"
     );
 
     public final SQLStmt feedS1Stream = new SQLStmt(
-            "INSERT INTO s1 (user_id) SELECT user_id FROM bikeStatus;"
+            "INSERT INTO s1 (user_id) SELECT user_id FROM s3;"
     );
 
     public final SQLStmt getNearByStations = new SQLStmt(
             "SELECT user_id, station_id FROM nearByStations WHERE user_id = ?;"
     );
 
-    public final SQLStmt removeUsedBikeStatusTuple = new SQLStmt(
-            "DELETE FROM bikeStatus;"
+    public final SQLStmt removeUsedS3Tuple = new SQLStmt(
+            "DELETE FROM s3;"
     );
 
     public long run() {
-        //LOG.debug(" >>> Start running " + this.getClass().getSimpleName());
+        LOG.debug(" >>> Start running " + this.getClass().getSimpleName());
         // Get a handle on the new tuple
         voltQueueSQL(getBikeCoordinate);
         voltQueueSQL(getAllStationsCoordinate);
@@ -112,11 +112,11 @@ public class UpdateNearByStations extends VoltProcedure {
         LOG.info("Replaced near by station for user_id " + user_id + ": " + voltExecuteSQL()[0]);
         */
 
-        // Feed S1 after NearByStations has been updated
+        // Feed S1 after nearByStations has been updated
         voltQueueSQL(feedS1Stream);
         voltExecuteSQL();
 
-        voltQueueSQL(removeUsedBikeStatusTuple);
+        voltQueueSQL(removeUsedS3Tuple);
         voltExecuteSQL(true);
 
         LOG.info(" <<< Finished running " + this.getClass().getSimpleName() + " for rider: " + user_id);

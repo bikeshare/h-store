@@ -175,5 +175,12 @@ public abstract class BikerStreamConstants {
     //
 
     public static final long N_NEAR_BY_STATIONS = 3;
+
+    // ===========================================================================
+    // ANOMALIES
+    //
+
+    public static final long STOLEN_SPEED = 60;
+    public static final long STOLEN_STATUS = 1;
 }
 
