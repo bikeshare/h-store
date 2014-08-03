@@ -41,12 +41,7 @@ public class DetectAnomalies extends VoltProcedure {
     }
 
     public final SQLStmt getOverSpeed = new SQLStmt(
-            "SELECT user_id FROM s2 WHERE speed >= " + BikerStreamConstants.STOLEN_SPEED + ";"
-    );
-
-    // Only for debug
-    public final SQLStmt getUserSpeed = new SQLStmt(
-            "SELECT speed FROM s2 WHERE user_id = ?;"
+            "SELECT user_id, speed FROM s2 WHERE speed >= " + BikerStreamConstants.STOLEN_SPEED + ";"
     );
 
     public final SQLStmt removeOldAnomalies = new SQLStmt(
@@ -72,14 +67,12 @@ public class DetectAnomalies extends VoltProcedure {
         VoltTable anomaly = voltExecuteSQL()[0];
 
         long user_id;
+        double speed;
         for (int i = 0; i < anomaly.getRowCount(); i++) {
             user_id = anomaly.fetchRow(i).getLong("user_id");
+            speed = anomaly.fetchRow(i).getDouble("speed");
 
-            /*
-            // Only for debug
-            voltQueueSQL(getUserSpeed, user_id);
-            LOG.info("   User: " + user_id + " is speeding at " + voltExecuteSQL()[0].fetchRow(0).getDouble("speed") + " MPH!");
-            */
+            LOG.info("   User: " + user_id + " is speeding at " + speed + " MPH!");
 
             voltQueueSQL(removeOldAnomalies, user_id);
             voltExecuteSQL();
