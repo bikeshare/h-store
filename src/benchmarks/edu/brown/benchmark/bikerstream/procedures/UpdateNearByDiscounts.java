@@ -45,7 +45,7 @@ public class UpdateNearByDiscounts extends VoltProcedure {
 
     public final SQLStmt getNearByDiscounts = new SQLStmt(
             "SELECT nbs.user_id, nbs.station_id " +
-                    "FROM nearByStations AS nbs, StationStatus AS ss " +
+                    "FROM nearByStations AS nbs, stationStatus AS ss " +
                     "WHERE nbs.station_id = ss.station_id " +
                     "    AND ss.current_discount > 0 " +
                     "    AND user_id = ?;"

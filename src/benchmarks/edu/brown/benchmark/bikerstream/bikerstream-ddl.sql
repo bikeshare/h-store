@@ -12,7 +12,7 @@ CREATE TABLE stations
 ,   longitude      FLOAT        NOT NULL
 );
 
-CREATE TABLE StationStatus
+CREATE TABLE stationStatus
 (
     station_id            INTEGER NOT NULL REFERENCES stations(station_id)
 ,   current_bikes         INTEGER NOT NULL

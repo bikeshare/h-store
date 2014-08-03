@@ -48,7 +48,7 @@ public class Initialize extends VoltProcedure
     );
 
     public final SQLStmt initialStationStatus = new SQLStmt(
-        "INSERT INTO StationStatus (station_id, current_bikes, current_docks, current_discount) " +
+        "INSERT INTO stationStatus (station_id, current_bikes, current_docks, current_discount) " +
         "VALUES (?,?,?,?)"
 
     );
@@ -64,7 +64,7 @@ public class Initialize extends VoltProcedure
             voltQueueSQL(insertStation,
                     i,
                     BikerStreamConstants.STATION_NAMES[i],
-                    "ADRESS HERE",
+                    "ADDRESS HERE",
                     BikerStreamConstants.STATION_LATS[i],
                     BikerStreamConstants.STATION_LONS[i]);
 

@@ -37,7 +37,7 @@ public class StationStatus extends VoltProcedure {
     // Logging Information
     private static final Logger Log = Logger.getLogger(CheckoutBike.class);
 
-    public final SQLStmt getStationStatus = new SQLStmt("SELECT * FROM StationStatus" );
+    public final SQLStmt getStationStatus = new SQLStmt("SELECT * FROM stationStatus" );
 
     public VoltTable [] run() {
         voltQueueSQL(getStationStatus);
