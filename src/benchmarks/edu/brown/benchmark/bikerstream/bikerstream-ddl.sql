@@ -72,6 +72,7 @@ CREATE TABLE riderPositions (
     user_id   INTEGER NOT NULL REFERENCES users(user_id)
 ,   latitude  FLOAT   NOT NULL
 ,   longitude FLOAT   NOT NULL
+,   time      TIMESTAMP NOT NULL
 );
 
 
@@ -101,7 +102,7 @@ CREATE STREAM s1 (
 -- to be fed by CalculateSpeed
 CREATE STREAM s2 (
     user_id   INTEGER   NOT NULL REFERENCES users(user_id)
-,   speed     INTEGER   NOT NULL
+,   speed     FLOAT     NOT NULL
 );
 
 
@@ -112,9 +113,6 @@ CREATE STREAM s3 (
 ,   longitude FLOAT     NOT NULL
 );
 
-
--- to be fed by ProcessBikeStatus
-CREATE WINDOW w1 ON bikestatus ROWS 100 SLIDE 1;
 
 -- ------------------------- ^ Locked in tables ^ ------------------------------
 

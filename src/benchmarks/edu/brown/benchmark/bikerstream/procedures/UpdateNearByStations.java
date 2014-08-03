@@ -44,7 +44,7 @@ public class UpdateNearByStations extends VoltProcedure {
         addTriggerTable("s3");
     }
 
-    public final SQLStmt getBikeCoordinate = new SQLStmt(
+    public final SQLStmt getUserCoordinate = new SQLStmt(
             "SELECT user_id, latitude, longitude FROM s3;"
     );
 
@@ -75,7 +75,7 @@ public class UpdateNearByStations extends VoltProcedure {
     public long run() {
         LOG.debug(" >>> Start running " + this.getClass().getSimpleName());
         // Get a handle on the new tuple
-        voltQueueSQL(getBikeCoordinate);
+        voltQueueSQL(getUserCoordinate);
         voltQueueSQL(getAllStationsCoordinate);
         VoltTable coordinates[] = voltExecuteSQL();
         long user_id = coordinates[0].fetchRow(0).getLong("user_id");

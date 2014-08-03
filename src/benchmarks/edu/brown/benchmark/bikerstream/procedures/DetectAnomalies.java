@@ -44,6 +44,15 @@ public class DetectAnomalies extends VoltProcedure {
             "SELECT user_id FROM s2 WHERE speed >= " + BikerStreamConstants.STOLEN_SPEED + ";"
     );
 
+    // Only for debug
+    public final SQLStmt getUserSpeed = new SQLStmt(
+            "SELECT speed FROM s2 WHERE user_id = ?;"
+    );
+
+    public final SQLStmt removeOldAnomalies = new SQLStmt(
+            "DELETE FROM anomalies WHERE user_id = ?;"
+    );
+
     public final SQLStmt insertAnomalies = new SQLStmt(
             "INSERT INTO anomalies (user_id, status) VALUES (?, ?);"
     );
@@ -52,17 +61,37 @@ public class DetectAnomalies extends VoltProcedure {
             "DELETE FROM s2;"
     );
 
+    // Only for debug
+    public final SQLStmt checkAnomalies = new SQLStmt(
+            "SELECT user_id, COUNT(*) FROM anomalies GROUP BY user_id ORDER BY user_id;"
+    );
+
     public long run() {
         LOG.debug(" >>> Start running " + this.getClass().getSimpleName());
         voltQueueSQL(getOverSpeed);
-        VoltTable anomalies[] = voltExecuteSQL();
+        VoltTable anomaly = voltExecuteSQL()[0];
 
         long user_id;
-        for (int i = 0; i < anomalies[0].getRowCount(); i++) {
-            user_id = anomalies[0].fetchRow(i).getLong("user_id");
+        for (int i = 0; i < anomaly.getRowCount(); i++) {
+            user_id = anomaly.fetchRow(i).getLong("user_id");
+
+            /*
+            // Only for debug
+            voltQueueSQL(getUserSpeed, user_id);
+            LOG.info("   User: " + user_id + " is speeding at " + voltExecuteSQL()[0].fetchRow(0).getDouble("speed") + " MPH!");
+            */
+
+            voltQueueSQL(removeOldAnomalies, user_id);
+            voltExecuteSQL();
             voltQueueSQL(insertAnomalies, user_id, BikerStreamConstants.STOLEN_STATUS);
             voltExecuteSQL();
         }
+
+        /*
+        // For verification purpose
+        voltQueueSQL(checkAnomalies);
+        LOG.info("Summary of anomalies: " + voltExecuteSQL()[0]);
+        */
 
         voltQueueSQL(removeUsedS2Tuple);
         voltExecuteSQL(true);

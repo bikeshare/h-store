@@ -70,7 +70,6 @@ public class BikerStreamProjectBuilder extends AbstractProjectBuilder {
         GetNearDiscounts.class,
         UpdateRiderLocations.class,
         ProcessBikeStatus.class,
-        CalculateSpeed.class,
         DetectAnomalies.class
     };
 
@@ -79,8 +78,7 @@ public class BikerStreamProjectBuilder extends AbstractProjectBuilder {
         { "bikestatus", "user_id" },
         { "s1", "user_id"},
         { "s2", "user_id"},
-        { "s3", "user_id"},
-        { "w1", "user_id"}
+        { "s3", "user_id"}
     };
 
     public BikerStreamProjectBuilder() {

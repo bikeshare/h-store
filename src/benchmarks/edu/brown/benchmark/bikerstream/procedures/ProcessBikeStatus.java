@@ -28,12 +28,13 @@ import org.apache.log4j.Logger;
 import org.voltdb.SQLStmt;
 import org.voltdb.VoltProcedure;
 import org.voltdb.VoltTable;
+import org.voltdb.types.TimestampType;
 
 /**
  * This VoltProcedure will trigger on INSERT INTO bikeStatus STREAM and performs the following;
- *   a.  Insert into the riderPositions TABLE
- *   b.  Pass the new data into s3 STREAM
- *   c.  Pass the new data into w1 WINDOW
+ *   a.  Calculate speed to feed to s2 STREAM
+ *   b.  Update the riderPositions TABLE  <-- need to be after Calculate speed
+ *   c.  Pass the new data into s3 STREAM
  */
 public class ProcessBikeStatus extends VoltProcedure {
     private static final Logger LOG = Logger.getLogger(ProcessBikeStatus.class);
@@ -42,8 +43,15 @@ public class ProcessBikeStatus extends VoltProcedure {
         addTriggerTable("bikeStatus");
     }
 
-    public final SQLStmt getUserFromBikeStatus = new SQLStmt(
-            "SELECT user_id FROM bikeStatus;"
+    public final SQLStmt getUserCoordinate = new SQLStmt(
+            "SELECT user_id, latitude, longitude, time FROM bikeStatus;"
+    );
+
+    public final SQLStmt getUserPreviousCoordinate = new SQLStmt(
+            "SELECT TOP 1 user_id, latitude, longitude, time " +
+                    "FROM riderPositions " +
+                    "WHERE user_id = ?" +
+                    "ORDER BY time DESC;"
     );
 
     public final SQLStmt removeRiderPositions = new SQLStmt(
@@ -51,8 +59,8 @@ public class ProcessBikeStatus extends VoltProcedure {
     );
 
     public final SQLStmt insertRiderPositions = new SQLStmt(
-            "INSERT INTO riderPositions (user_id, latitude, longitude) " +
-                    "SELECT              user_id, latitude, longitude FROM bikeStatus;"
+            "INSERT INTO riderPositions (user_id, latitude, longitude, time) " +
+                    "SELECT              user_id, latitude, longitude, time FROM bikeStatus;"
     );
 
     public final SQLStmt feedS3Stream = new SQLStmt(
@@ -60,48 +68,101 @@ public class ProcessBikeStatus extends VoltProcedure {
                     "SELECT  user_id, latitude, longitude FROM bikeStatus;"
     );
 
-    public final SQLStmt feedW1Stream = new SQLStmt(
-            "INSERT INTO w1 (user_id, latitude, longitude, time) " +
-                    "SELECT  user_id, latitude, longitude, time FROM bikeStatus;"
+    public final SQLStmt feedS2Stream = new SQLStmt(
+            "INSERT INTO s2 (user_id, speed) VALUES (?, ?);"
     );
 
     public final SQLStmt removeUsedBikeStatusTuple = new SQLStmt(
             "DELETE FROM bikeStatus;"
     );
 
-    public final SQLStmt checkW1 = new SQLStmt(
-            "SELECT user_id, COUNT(*) AS entry_count, MAX(time) AS max_time FROM w1 GROUP BY user_id;"
-    );
-
     public long run() {
         LOG.debug(" >>> Start running " + this.getClass().getSimpleName());
-        voltQueueSQL(getUserFromBikeStatus);
-        VoltTable users[] = voltExecuteSQL();
 
-        long user_id;
-        for (int i = 0; i < users[0].getRowCount(); i++) {
-            user_id = users[0].fetchRow(0).getLong("user_id");
-            voltQueueSQL(removeRiderPositions, user_id);
-            voltExecuteSQL();
+        voltQueueSQL(getUserCoordinate);
+        VoltTable coordinate = voltExecuteSQL()[0];
+        long user_id = coordinate.fetchRow(0).getLong("user_id");
+        double x1 = coordinate.fetchRow(0).getDouble("latitude");
+        double y1 = coordinate.fetchRow(0).getDouble("longitude");
+        TimestampType t1 = coordinate.fetchRow(0).getTimestampAsTimestamp("time");
+
+        //a. Calculate speed to feed to s2 STREAM
+        voltQueueSQL(getUserPreviousCoordinate, user_id);
+        VoltTable previousCoordinate = voltExecuteSQL()[0];
+        if (previousCoordinate.getRowCount() > 0) {
+            double x2 = previousCoordinate.fetchRow(0).getDouble("latitude");
+            double y2 = previousCoordinate.fetchRow(0).getDouble("longitude");
+            TimestampType t2 = previousCoordinate.fetchRow(0).getTimestampAsTimestamp("time");
+
+
+            final long MILLISECOND_TO_HOUR = 60 * 60 * 1000;
+            double timeDiff = Math.abs(t1.getMSTime() - t2.getMSTime()) ;
+            if (timeDiff > 0) {
+                double distance = distance(x1, y1, x2, y2, 'M');
+                double speed = distance / (timeDiff / MILLISECOND_TO_HOUR);
+
+                /*
+                LOG.info(x1 + ", " + y1 + ", " + x2 + ", " + y2);
+                LOG.info(t1.toString());
+                LOG.info(t2.toString());
+                LOG.info(" CALCULATED distance: " + distance + "(miles)");
+                LOG.info(" CALCULATED time    : " + (timeDiff / MILLISECOND_TO_HOUR)  + "(hours)");
+                LOG.info(" CALCULATED speed   : " + speed + "(MPH)");
+                */
+
+                voltQueueSQL(feedS2Stream, user_id, speed);
+                voltExecuteSQL();
+            }
         }
 
+        //b. Update the riderPositions TABLE  <-- need to be after Calculate speed
+        voltQueueSQL(removeRiderPositions, user_id);
+        voltExecuteSQL();
         voltQueueSQL(insertRiderPositions);
         voltExecuteSQL();
 
+        //c. Pass the new data into s3 STREAM
         voltQueueSQL(feedS3Stream);
         voltExecuteSQL();
-
-        voltQueueSQL(feedW1Stream);
-        voltExecuteSQL();
-
-        // For verification purpose
-        voltQueueSQL(checkW1);
-        LOG.info("Summary of w1 WINDOW's content: " + voltExecuteSQL()[0]);
 
         voltQueueSQL(removeUsedBikeStatusTuple);
         voltExecuteSQL(true);
 
         LOG.info(" <<< Finished running " + this.getClass().getSimpleName());
         return 0;
+    }
+
+    /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+    /*::  08/03/2014                                                    :*/
+    /*::  http://stackoverflow.com/questions/3694380/calculating-       :*/
+    /*::  distance-between-two-points-using-latitude-longitude-what-    :*/
+    /*::  am-i-doi                                                      :*/
+    /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+    private double distance(double lat1, double lon1, double lat2, double lon2, char unit) {
+        double theta = lon1 - lon2;
+        double dist = Math.sin(deg2rad(lat1)) * Math.sin(deg2rad(lat2)) + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.cos(deg2rad(theta));
+        dist = Math.acos(dist);
+        dist = rad2deg(dist);
+        dist = dist * 60 * 1.1515;
+        if (unit == 'K') {
+            dist = dist * 1.609344;
+        } else if (unit == 'N') {
+            dist = dist * 0.8684;
+        }
+        return (dist);
+    }
+
+    /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+    /*::  This function converts decimal degrees to radians             :*/
+    /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+    private double deg2rad(double deg) {
+        return (deg * Math.PI / 180.0);
+    }
+
+    /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+    /*::  This function converts radians to decimal degrees             :*/
+    /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+    private double rad2deg(double rad) {
+        return (rad * 180.0 / Math.PI);
     }
 }
