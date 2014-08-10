@@ -35,13 +35,18 @@ import org.apache.commons.lang.ArrayUtils;
 
 public abstract class BikerStreamConstants {
 
+    public static final long GAME_TIMER              = 0;
+    public static final int  GAME_STATION            = 3;
+    public static final long DISCOUNT_THRESHOLD      = 4;
+    public static final long MILI_BETWEEN_GPS_EVENTS = 50;
+    public static final int  NUM_BIKES_PER_STATION   = 10;
+    public static final int  NUM_WAITERS             = 0;
+    public static final int  NUM_DOCKS_PER_STATION   = 20;
+
     // potential return codes
     public static final long BIKEREADING_SUCCESSFUL  = 0;
 
-    public static final int NUM_WAITERS = 5;
-    public static final long GAME_TIMER = 10000;
-    public static final int GAME_STATION = 3;
-
+    public static final long CHECKOUT_SUCCESS = 0;
     public static final long FAILED_CHECKOUT = -1;
     public static final long FAILED_CHECKIN = -2;
     public static final long FAILED_SIGNUP = -3;
@@ -63,8 +68,6 @@ public abstract class BikerStreamConstants {
     // of zones, stations and docks.
     //
 
-    public static final int NUM_BIKES_PER_STATION = 10;
-    public static final int NUM_DOCKS_PER_STATION = 20;
 
     public static final String ROUTES_DIR =
             "src/benchmarks/edu/brown/benchmark/bikerstream/routes";
@@ -154,15 +157,10 @@ public abstract class BikerStreamConstants {
 
     // The discount threshold is the number of bikes necessary at a station before discounts
     // begin being added.
-    public static final long DISCOUNT_THRESHOLD = 5;
-
-    public static final long CHECKOUT_SUCCESS = 0;
 
     // ===========================================================================
     // BIKE RIDE
     //
-
-    public static final long MILI_BETWEEN_GPS_EVENTS = 100;
 
     // ===========================================================================
     // BIKE CHECKIN

@@ -170,7 +170,7 @@ public class BikerStreamClient extends BenchmarkComponent {
             cr = client.callProcedure("CheckinBike", rider.getRiderId(), rider.getFinalStation());
             result = cr.getResults()[0].asScalarLong();
             incrementTransactionCounter(cr, 3);
-            while (result != BikerStreamConstants.FAILED_CHECKIN) {
+            while (result == BikerStreamConstants.FAILED_CHECKIN) {
 
                 rider.deviateRandomly();
                 route = rider.getNextRoute();
