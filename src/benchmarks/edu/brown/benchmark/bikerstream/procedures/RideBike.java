@@ -72,6 +72,7 @@ public class RideBike extends VoltProcedure {
             // Post the ride event
         	voltQueueSQL(getUser, rider_id);
         	voltQueueSQL(getBike, rider_id);
+            voltQueueSQL(log, rider_id, time, 9, "Inserting Point");
         	VoltTable results[] = voltExecuteSQL();
         	if (results[0].getRowCount() < 1)
         		return BikerStreamConstants.USER_DOESNT_EXIST;
@@ -81,6 +82,7 @@ public class RideBike extends VoltProcedure {
         		//throw new RuntimeException("Rider: " + rider_id + " does not have a bike checked out");
             TimestampType time = new TimestampType();
             voltQueueSQL(insertBikeReadingStmt, rider_id, reading_lat, reading_lon, time);
+            voltQueueSQL(log, rider_id, time, 9, "Point Inserted");
             voltExecuteSQL(true);
         } catch (Exception e) {
             return BikerStreamConstants.FAILED_POINT_ADD;
