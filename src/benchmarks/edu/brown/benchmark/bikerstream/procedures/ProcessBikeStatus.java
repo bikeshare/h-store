@@ -32,9 +32,10 @@ import org.voltdb.types.TimestampType;
 
 /**
  * This VoltProcedure will trigger on INSERT INTO bikeStatus STREAM and performs the following;
- *   a.  Calculate speed to feed to s2 STREAM
- *   b.  Update the riderPositions TABLE  <-- need to be after Calculate speed
- *   c.  Pass the new data into s3 STREAM
+ *   a. Feed lastNBikeStatus WINDOW
+ *   b. Pass the new data into s3 STREAM
+ *   c. Calculate speed to feed to s2 STREAM
+ *   b. Update the riderPositions TABLE  <-- need to be after Calculate speed
  */
 public class ProcessBikeStatus extends VoltProcedure {
     private static final Logger LOG = Logger.getLogger(ProcessBikeStatus.class);
@@ -63,6 +64,11 @@ public class ProcessBikeStatus extends VoltProcedure {
                     "SELECT              user_id, latitude, longitude, time FROM bikeStatus;"
     );
 
+    public final SQLStmt feedLastNBikeStatusWindow = new SQLStmt(
+            "INSERT INTO lastNBikeStatus (user_id, latitude, longitude, time) " +
+                    "SELECT user_id, latitude, longitude, time FROM bikeStatus;"
+    );
+
     public final SQLStmt feedS3Stream = new SQLStmt(
             "INSERT INTO s3 (user_id, latitude, longitude) " +
                     "SELECT  user_id, latitude, longitude FROM bikeStatus;"
@@ -79,6 +85,16 @@ public class ProcessBikeStatus extends VoltProcedure {
     public long run() {
         LOG.debug(" >>> Start running " + this.getClass().getSimpleName());
 
+
+        //a. Feed lastNBikeStatus WINDOW
+        voltQueueSQL(feedLastNBikeStatusWindow);
+        voltExecuteSQL();
+
+        //b. Pass the new data into s3 STREAM
+        voltQueueSQL(feedS3Stream);
+        voltExecuteSQL();
+
+        //c. Calculate speed to feed to s2 STREAM
         voltQueueSQL(getUserCoordinate);
         VoltTable coordinate = voltExecuteSQL()[0];
         long user_id = coordinate.fetchRow(0).getLong("user_id");
@@ -86,7 +102,6 @@ public class ProcessBikeStatus extends VoltProcedure {
         double y1 = coordinate.fetchRow(0).getDouble("longitude");
         TimestampType t1 = coordinate.fetchRow(0).getTimestampAsTimestamp("time");
 
-        //a. Calculate speed to feed to s2 STREAM
         voltQueueSQL(getUserPreviousCoordinate, user_id);
         VoltTable previousCoordinate = voltExecuteSQL()[0];
         if (previousCoordinate.getRowCount() > 0) {
@@ -119,10 +134,6 @@ public class ProcessBikeStatus extends VoltProcedure {
         voltQueueSQL(removeRiderPositions, user_id);
         voltExecuteSQL();
         voltQueueSQL(insertRiderPositions);
-        voltExecuteSQL();
-
-        //c. Pass the new data into s3 STREAM
-        voltQueueSQL(feedS3Stream);
         voltExecuteSQL();
 
         voltQueueSQL(removeUsedBikeStatusTuple);

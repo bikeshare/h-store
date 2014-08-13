@@ -46,39 +46,43 @@ public class BikerStreamProjectBuilder extends AbstractProjectBuilder {
     // a list of procedures implemented in this benchmark
     @SuppressWarnings("unchecked")
     public static final Class<? extends VoltProcedure> PROCEDURES[] = (Class<? extends VoltProcedure>[])new Class<?>[]{
-        Initialize.class,
-        SignUp.class,
-        SignUpName.class,
-        SignUpRand.class,
-        CheckoutBike.class,
-        CheckinBike.class,
-        RideBike.class,
-        TestProcedure.class,
-        LogRiderTrip.class,
-        Bikes.class,
-        BikeStatus.class,
-        FindUser.class,
-        GetBikeStatus.class,
-        GetStationStatus.class,
-        Stations.class,
-        StationStatus.class,
-        Users.class,
-        UpdateNearByDiscounts.class,
-        UpdateNearByStations.class,
-        AcceptDiscount.class,
-        UserLocations.class,
-        GetNearDiscounts.class,
-        UpdateRiderLocations.class,
-        ProcessBikeStatus.class,
-        DetectAnomalies.class
+            Initialize.class,
+            SignUp.class,
+            SignUpName.class,
+            SignUpRand.class,
+            CheckoutBike.class,
+            CheckinBike.class,
+            RideBike.class,
+            TestProcedure.class,
+            LogRiderTrip.class,
+            Bikes.class,
+            BikeStatus.class,
+            FindUser.class,
+            GetBikeStatus.class,
+            GetStationStatus.class,
+            Stations.class,
+            StationStatus.class,
+            Users.class,
+            UpdateNearByDiscounts.class,
+            UpdateNearByStations.class,
+            AcceptDiscount.class,
+            UserLocations.class,
+            GetNearDiscounts.class,
+            UpdateRiderLocations.class,
+            ProcessBikeStatus.class,
+            DetectAnomalies.class,
+            LastNBikeStatusTrigger.class,
+            LastNS2Trigger.class
     };
 
     // a list of tables used in this benchmark with corresponding partitioning keys
     public static final String PARTITIONING[][] = new String[][] {
-        { "bikestatus", "user_id" },
-        { "s1", "user_id"},
-        { "s2", "user_id"},
-        { "s3", "user_id"}
+            {"bikestatus", "user_id" },
+            {"lastNBikestatus", "user_id" },
+            {"s1", "user_id"},
+            {"s2", "user_id"},
+            {"lastNS2", "user_id"},
+            {"s3", "user_id"}
     };
 
     public BikerStreamProjectBuilder() {

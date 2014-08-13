@@ -32,6 +32,8 @@ import org.voltdb.VoltTable;
 
 /**
  * This VoltProcedure will trigger on INSERT INTO s2 STREAM and check the speed limit
+ *   a. Feed lastNS2 WINDOW
+ *   b. Detect Anomalies
  */
 public class DetectAnomalies extends VoltProcedure {
     private static final Logger LOG = Logger.getLogger(DetectAnomalies.class);
@@ -39,6 +41,10 @@ public class DetectAnomalies extends VoltProcedure {
     protected void toSetTriggerTableName() {
         addTriggerTable("s2");
     }
+
+    public final SQLStmt feedLastNS2Window = new SQLStmt(
+            "INSERT INTO lastNS2 (user_id, speed) SELECT user_id, speed FROM s2;"
+    );
 
     public final SQLStmt getOverSpeed = new SQLStmt(
             "SELECT user_id, speed FROM s2 WHERE speed >= " + BikerStreamConstants.STOLEN_SPEED + ";"
@@ -63,6 +69,11 @@ public class DetectAnomalies extends VoltProcedure {
 
     public long run() {
         LOG.debug(" >>> Start running " + this.getClass().getSimpleName());
+        // a. Feed lastNS2 WINDOW
+        voltQueueSQL(feedLastNS2Window);
+        voltExecuteSQL();
+
+        // b. Detect Anomalies
         voltQueueSQL(getOverSpeed);
         VoltTable anomaly = voltExecuteSQL()[0];
 
@@ -72,7 +83,7 @@ public class DetectAnomalies extends VoltProcedure {
             user_id = anomaly.fetchRow(i).getLong("user_id");
             speed = anomaly.fetchRow(i).getDouble("speed");
 
-            LOG.info("   User: " + user_id + " is speeding at " + speed + " MPH!");
+            LOG.info("   Anomaly detected rider: " + user_id + " is speeding at " + speed + " MPH!");
 
             voltQueueSQL(removeOldAnomalies, user_id);
             voltExecuteSQL();
