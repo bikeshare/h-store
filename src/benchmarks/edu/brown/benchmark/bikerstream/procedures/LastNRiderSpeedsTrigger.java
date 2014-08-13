@@ -63,10 +63,16 @@ public class LastNRiderSpeedsTrigger extends VoltProcedure {
 
         voltQueueSQL(getNewRecentRiderSummary);
         VoltTable newSummary = voltExecuteSQL()[0];
-        long riderCount = newSummary.fetchRow(0).getLong("rider_count");
-        double speedMax = newSummary.fetchRow(0).getDouble("speed_max");
-        double speedMin = newSummary.fetchRow(0).getDouble("speed_min");
-        double speedAvg = newSummary.fetchRow(0).getDouble("speed_avg");
+        long riderCount = 0;
+        double speedMax = 0.0;
+        double speedMin = 0.0;
+        double speedAvg = 0.0;
+        if (newSummary.getRowCount() > 0) {
+            riderCount = newSummary.fetchRow(0).getLong("rider_count");
+            speedMax = newSummary.fetchRow(0).getDouble("speed_max");
+            speedMin = newSummary.fetchRow(0).getDouble("speed_min");
+            speedAvg = newSummary.fetchRow(0).getDouble("speed_avg");
+        }
 
         voltQueueSQL(deleteRecentRiderSummary);
         voltQueueSQL(insertRecentRiderSummary, riderCount, speedMax, speedMin, speedAvg);

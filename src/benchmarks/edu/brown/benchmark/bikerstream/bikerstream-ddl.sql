@@ -88,6 +88,7 @@ CREATE TABLE recentRiderArea (
 ,   longitude_1 FLOAT   NOT NULL
 ,   latitude_2  FLOAT   NOT NULL
 ,   longitude_2 FLOAT   NOT NULL
+,   sqr_mile    FLOAT   NOT NULL
 );
 
 
