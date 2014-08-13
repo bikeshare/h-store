@@ -24,6 +24,7 @@
 
 package edu.brown.benchmark.bikerstream.procedures;
 
+import edu.brown.benchmark.bikerstream.BikerStreamConstants;
 import org.apache.log4j.Logger;
 import org.voltdb.SQLStmt;
 import org.voltdb.VoltProcedure;
@@ -114,7 +115,7 @@ public class ProcessBikeStatus extends VoltProcedure {
             double timeDiff = Math.abs(t1.getMSTime() - t2.getMSTime()) ;
             if (timeDiff > 0) {
                 double distance = distance(x1, y1, x2, y2, 'M');
-                double speed = distance / (timeDiff / MILLISECOND_TO_HOUR);
+                double speed = BikerStreamConstants.SPEED_SCALING * (distance / (timeDiff / MILLISECOND_TO_HOUR));
 
                 /*
                 LOG.info(x1 + ", " + y1 + ", " + x2 + ", " + y2);

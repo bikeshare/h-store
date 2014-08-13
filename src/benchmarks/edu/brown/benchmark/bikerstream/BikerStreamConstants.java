@@ -178,6 +178,7 @@ public abstract class BikerStreamConstants {
     // ANOMALIES
     //
 
+    public static final double SPEED_SCALING = 1.0;
     public static final double STOLEN_SPEED = 60.0;
     public static final long   STOLEN_STATUS = 1;
 }
