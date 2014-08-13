@@ -25,6 +25,7 @@
 package edu.brown.benchmark.bikerstream.procedures;
 
 import edu.brown.benchmark.bikerstream.BikerStreamConstants;
+import edu.brown.benchmark.bikerstream.BikerStreamUtil;
 import org.apache.log4j.Logger;
 import org.voltdb.SQLStmt;
 import org.voltdb.VoltProcedure;
@@ -114,7 +115,7 @@ public class ProcessBikeStatus extends VoltProcedure {
             final long MILLISECOND_TO_HOUR = 60 * 60 * 1000;
             double timeDiff = Math.abs(t1.getMSTime() - t2.getMSTime()) ;
             if (timeDiff > 0) {
-                double distance = distance(x1, y1, x2, y2, 'M');
+                double distance = BikerStreamUtil.geoDistance(x1, y1, x2, y2);
                 double speed = BikerStreamConstants.SPEED_SCALING * (distance / (timeDiff / MILLISECOND_TO_HOUR));
 
                 /*
@@ -142,39 +143,5 @@ public class ProcessBikeStatus extends VoltProcedure {
 
         LOG.info(" <<< Finished running " + this.getClass().getSimpleName());
         return 0;
-    }
-
-    /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-    /*::  08/03/2014                                                    :*/
-    /*::  http://stackoverflow.com/questions/3694380/calculating-       :*/
-    /*::  distance-between-two-points-using-latitude-longitude-what-    :*/
-    /*::  am-i-doi                                                      :*/
-    /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-    private double distance(double lat1, double lon1, double lat2, double lon2, char unit) {
-        double theta = lon1 - lon2;
-        double dist = Math.sin(deg2rad(lat1)) * Math.sin(deg2rad(lat2)) + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.cos(deg2rad(theta));
-        dist = Math.acos(dist);
-        dist = rad2deg(dist);
-        dist = dist * 60 * 1.1515;
-        if (unit == 'K') {
-            dist = dist * 1.609344;
-        } else if (unit == 'N') {
-            dist = dist * 0.8684;
-        }
-        return (dist);
-    }
-
-    /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-    /*::  This function converts decimal degrees to radians             :*/
-    /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-    private double deg2rad(double deg) {
-        return (deg * Math.PI / 180.0);
-    }
-
-    /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-    /*::  This function converts radians to decimal degrees             :*/
-    /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-    private double rad2deg(double rad) {
-        return (rad * 180.0 / Math.PI);
     }
 }
