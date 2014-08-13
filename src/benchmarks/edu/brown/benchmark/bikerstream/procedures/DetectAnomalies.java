@@ -31,23 +31,23 @@ import org.voltdb.VoltProcedure;
 import org.voltdb.VoltTable;
 
 /**
- * This VoltProcedure will trigger on INSERT INTO s2 STREAM and check the speed limit
- *   a. Feed lastNS2 WINDOW
+ * This VoltProcedure will trigger on INSERT INTO riderSpeeds STREAM and check the speed limit
+ *   a. Feed lastNRiderSpeeds WINDOW
  *   b. Detect Anomalies
  */
 public class DetectAnomalies extends VoltProcedure {
     private static final Logger LOG = Logger.getLogger(DetectAnomalies.class);
 
     protected void toSetTriggerTableName() {
-        addTriggerTable("s2");
+        addTriggerTable("riderSpeeds");
     }
 
-    public final SQLStmt feedLastNS2Window = new SQLStmt(
-            "INSERT INTO lastNS2 (user_id, speed) SELECT user_id, speed FROM s2;"
+    public final SQLStmt feedLastNRiderSpeedsWindow = new SQLStmt(
+            "INSERT INTO lastNRiderSpeeds (user_id, speed) SELECT user_id, speed FROM riderSpeeds;"
     );
 
     public final SQLStmt getOverSpeed = new SQLStmt(
-            "SELECT user_id, speed FROM s2 WHERE speed >= " + BikerStreamConstants.STOLEN_SPEED + ";"
+            "SELECT user_id, speed FROM riderSpeeds WHERE speed >= " + BikerStreamConstants.STOLEN_SPEED + ";"
     );
 
     public final SQLStmt removeOldAnomalies = new SQLStmt(
@@ -58,8 +58,8 @@ public class DetectAnomalies extends VoltProcedure {
             "INSERT INTO anomalies (user_id, status) VALUES (?, ?);"
     );
 
-    public final SQLStmt removeUsedS2Tuple = new SQLStmt(
-            "DELETE FROM s2;"
+    public final SQLStmt removeUsedRiderSpeedsTuple = new SQLStmt(
+            "DELETE FROM riderSpeeds;"
     );
 
     // Only for debug
@@ -69,8 +69,8 @@ public class DetectAnomalies extends VoltProcedure {
 
     public long run() {
         LOG.debug(" >>> Start running " + this.getClass().getSimpleName());
-        // a. Feed lastNS2 WINDOW
-        voltQueueSQL(feedLastNS2Window);
+        // a. Feed lastNRiderSpeeds WINDOW
+        voltQueueSQL(feedLastNRiderSpeedsWindow);
         voltExecuteSQL();
 
         // b. Detect Anomalies
@@ -97,7 +97,7 @@ public class DetectAnomalies extends VoltProcedure {
         LOG.info("Summary of anomalies: " + voltExecuteSQL()[0]);
         */
 
-        voltQueueSQL(removeUsedS2Tuple);
+        voltQueueSQL(removeUsedRiderSpeedsTuple);
         voltExecuteSQL(true);
 
         LOG.info(" <<< Finished running " + this.getClass().getSimpleName());

@@ -36,14 +36,14 @@ import org.voltdb.VoltTable;
  * When extends VoltTrigger, this trigger will not get schedule.
  * As a work around, it extends VoltProcedure instead.
  *
- * This VoltProcedure will trigger on INSERT INTO lastNS2 WINDOW and
+ * This VoltProcedure will trigger on INSERT INTO lastNRiderSpeeds WINDOW and
  * Aggregate the result into recentRiderSummary TABLE
  */
-public class LastNS2Trigger extends VoltProcedure {
-    private static final Logger LOG = Logger.getLogger(LastNS2Trigger.class);
+public class LastNRiderSpeedsTrigger extends VoltProcedure {
+    private static final Logger LOG = Logger.getLogger(LastNRiderSpeedsTrigger.class);
 
     protected void toSetTriggerTableName() {
-        addTriggerTable("lastNS2");
+        addTriggerTable("lastNRiderSpeeds");
     }
 
     public final SQLStmt deleteRecentRiderSummary = new SQLStmt(
@@ -51,8 +51,7 @@ public class LastNS2Trigger extends VoltProcedure {
     );
 
     public final SQLStmt getNewRecentRiderSummary = new SQLStmt(
-            "SELECT COUNT(DISTINCT user_id) AS rider_count, MAX(speed) AS speed_max, MIN(speed) AS speed_min, AVG(speed) AS speed_avg FROM lastNS2;"
-            //"SELECT TOP 1 * FROM lastNS2;"
+            "SELECT COUNT(DISTINCT user_id) AS rider_count, MAX(speed) AS speed_max, MIN(speed) AS speed_min, AVG(speed) AS speed_avg FROM lastNRiderSpeeds;"
     );
 
     public final SQLStmt insertRecentRiderSummary = new SQLStmt(

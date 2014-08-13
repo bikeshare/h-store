@@ -72,7 +72,7 @@ public class BikerStreamProjectBuilder extends AbstractProjectBuilder {
             ProcessBikeStatus.class,
             DetectAnomalies.class,
             LastNBikeStatusTrigger.class,
-            LastNS2Trigger.class
+            LastNRiderSpeedsTrigger.class
     };
 
     // a list of tables used in this benchmark with corresponding partitioning keys
@@ -80,8 +80,8 @@ public class BikerStreamProjectBuilder extends AbstractProjectBuilder {
             {"bikestatus", "user_id" },
             {"lastNBikestatus", "user_id" },
             {"s1", "user_id"},
-            {"s2", "user_id"},
-            {"lastNS2", "user_id"},
+            {"riderSpeeds", "user_id"},
+            {"lastNRiderSpeeds", "user_id"},
             {"s3", "user_id"}
     };
 

@@ -34,7 +34,7 @@ import org.voltdb.types.TimestampType;
  * This VoltProcedure will trigger on INSERT INTO bikeStatus STREAM and performs the following;
  *   a. Feed lastNBikeStatus WINDOW
  *   b. Pass the new data into s3 STREAM
- *   c. Calculate speed to feed to s2 STREAM
+ *   c. Calculate speed to feed to riderSpeeds STREAM
  *   b. Update the riderPositions TABLE  <-- need to be after Calculate speed
  */
 public class ProcessBikeStatus extends VoltProcedure {
@@ -74,8 +74,8 @@ public class ProcessBikeStatus extends VoltProcedure {
                     "SELECT  user_id, latitude, longitude FROM bikeStatus;"
     );
 
-    public final SQLStmt feedS2Stream = new SQLStmt(
-            "INSERT INTO s2 (user_id, speed) VALUES (?, ?);"
+    public final SQLStmt feedRiderSpeedsStream = new SQLStmt(
+            "INSERT INTO riderSpeeds (user_id, speed) VALUES (?, ?);"
     );
 
     public final SQLStmt removeUsedBikeStatusTuple = new SQLStmt(
@@ -94,7 +94,7 @@ public class ProcessBikeStatus extends VoltProcedure {
         voltQueueSQL(feedS3Stream);
         voltExecuteSQL();
 
-        //c. Calculate speed to feed to s2 STREAM
+        //c. Calculate speed to feed to riderSpeeds STREAM
         voltQueueSQL(getUserCoordinate);
         VoltTable coordinate = voltExecuteSQL()[0];
         long user_id = coordinate.fetchRow(0).getLong("user_id");
@@ -125,7 +125,7 @@ public class ProcessBikeStatus extends VoltProcedure {
                 LOG.info(" CALCULATED speed   : " + speed + "(MPH)");
                 */
 
-                voltQueueSQL(feedS2Stream, user_id, speed);
+                voltQueueSQL(feedRiderSpeedsStream, user_id, speed);
                 voltExecuteSQL();
             }
         }

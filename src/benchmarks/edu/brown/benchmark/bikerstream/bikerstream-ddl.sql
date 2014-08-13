@@ -119,11 +119,11 @@ CREATE STREAM s1 (
 
 
 -- to be fed by CalculateSpeed
-CREATE STREAM s2 (
+CREATE STREAM riderSpeeds (
     user_id   INTEGER   NOT NULL REFERENCES users(user_id)
 ,   speed     FLOAT     NOT NULL
 );
-CREATE WINDOW lastNS2 ON s2 ROWS 100 SLIDE 1;
+CREATE WINDOW lastNRiderSpeeds ON riderSpeeds ROWS 100 SLIDE 1;
 
 
 -- to be fed by ProcessBikeStatus
