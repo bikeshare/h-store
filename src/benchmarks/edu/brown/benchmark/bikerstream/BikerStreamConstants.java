@@ -38,8 +38,8 @@ public abstract class BikerStreamConstants {
     // potential return codes
     public static final long BIKEREADING_SUCCESSFUL  = 0;
 
-    public static final int NUM_WAITERS = 5;
-    public static final long GAME_TIMER = 10000;
+    public static final int NUM_WAITERS = 9;
+    public static final long GAME_TIMER = 40000;
     public static final int GAME_STATION = 3;
 
     public static final long FAILED_CHECKOUT = -1;
@@ -76,7 +76,27 @@ public abstract class BikerStreamConstants {
         "Moda_Center",
         "Portland_State_University",
         "Overlook_Park",
-        "Civic_Stadium",
+        "Civic_Stadium", // KT - incorrect,but leave as this is the filename
+    };
+    
+    public static final String[] STATION_LOGICAL_NAMES = new String[] {
+        "OHSU_South_Waterfront",
+        "Waterfront_Park",
+        "Eastbank_Esplanade",
+        "Moda_Center",
+        "Portland_State_University",
+        "Overlook_Park",
+        "Providence_Park",
+    };
+    
+    public static final String[] STATION_ADDRESSES = new String[] { 
+        "3303 SW Bond Ave, Portland",
+        "SW Naito Parkway, Portland",
+        "Eastbank Esplanade, Portland",
+        "1 N Center St, Portland",
+        "1825 SW Broadway, Portland",
+        "1599 N Fremont St, Portland",
+        "1844 SW Morrison St, Portland",
     };
 
     public static final String[] DP_NAMES = new String[] {
@@ -85,7 +105,15 @@ public abstract class BikerStreamConstants {
         "Decision_Point_3",
         "Decision_Point_4",
     };
-
+    
+    public static final String[] DP_LOGICAL_NAMES = new String[] {
+        "Schrunk Plaza (DP)",
+        "Pioneer Cemetary (DP)",
+        "Pizza Schmizza (DP)",
+        "Portland Music Co (DP)",
+    };
+    
+    public static final String[] LOGICAL_NAMES = (String[]) ArrayUtils.addAll(STATION_LOGICAL_NAMES, DP_LOGICAL_NAMES); 
     public static final double[] STATION_LONS = new double[]{
             -122.670743465424,
             -122.673382759094,
@@ -138,15 +166,15 @@ public abstract class BikerStreamConstants {
         "Paul", "Jay", "Andrea", "Jack", "Eryn", "Nesime",
         "Ben", "Bebe", "Ann", "Alex", "Carolyn", "Krieger",
         "Ellie", "Collen", "Clifford", "Christopher","Johnathan",
-        "Kanye", "David", "Craig", "Morgan", "Sara" };
+        "Kanye", "David", "Craig", "Morgan", "Sara", "Hong"};
 
     // Lastnames for the sign up process
     public static final String[] LASTNAMES = new String[] {
         "Smith", "Phelps", "Sutherland", "Sampson", "Tufte",
-        "Maes", "Kiss", "Mulvaney", "Logan", "Sarreal", "Cruise",
+        "Maes", "Mulvaney", "Logan", "Sarreal", "Cruise",
         "Archer", "Clark", "Casey", "Mack", "Garmin", "Sabath",
         "Giossi", "Murphy", "Hong", "West", "Ramage", "Meinschein",
-        "Harvey", "Kane" };
+        "Harvey", "Kane", "Tatbul", "Quach"};
 
     // ===========================================================================
     // BIKE CHECKOUT
