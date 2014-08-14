@@ -155,7 +155,7 @@ public class BikerStreamClient extends BenchmarkComponent {
                         // Need to acquire the discount, if fail, try the next one if available
                         for (int i=0; i < numDiscounts; ++i) {
                             cr = client.callProcedure("AcceptDiscount", rider_id, table.fetchRow(i).getLong("station_id"));
-                            System.out.println("Rider: " + rider_id + " -> ACCEPTED DISCOUNT");
+                            System.out.println("Rider: " + rider_id + " : Accepted Discount");
 
                             result = cr.getResults()[0].asScalarLong();
                             if (result != BikerStreamConstants.FAILED_ACCEPT_DISCOUNT){
