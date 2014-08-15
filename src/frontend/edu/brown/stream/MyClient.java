@@ -55,6 +55,7 @@ import edu.brown.utils.CollectionUtil;
 
 
 public class MyClient {
+	String host;
 	final int port;
 	Catalog catalog;
 	Client client;
@@ -71,11 +72,14 @@ public class MyClient {
     public static final long NO_BIKE_CHECKED_OUT = -6;
     public static final long USER_ALREADY_HAS_BIKE = -7;
     public static final long USER_DOESNT_EXIST = -8;
+    public static final long NULL_RIDER_ID = -9;
+    public static final long BIKE_DOESNT_EXIST = -10;
 	
-	MyClient() {
+	MyClient(String host) {
+		this.host = host;
 		this.port = HStoreConstants.DEFAULT_PORT; //21212
 		this.catalog = new Catalog();
-		this.reconnect();
+		this.reconnect(this.host);
 		try {
 			this.serverSocket = new ServerSocket(6000);
 		} catch (IOException e) {
@@ -84,11 +88,11 @@ public class MyClient {
 		}
 	}
 	
-	public void reconnect() {
+	public void reconnect(String host) {
 		boolean connected = false;
 		while (!connected) {
 			try {
-				this.icc = this.getClientConnection("localhost");
+				this.icc = this.getClientConnection(host);
 				connected = true;
 			}
 			catch (RuntimeException e) {
@@ -120,7 +124,7 @@ public class MyClient {
 		} catch (NoConnectionsException e) {
 			System.out.println("Connection to S-Store was lost");
 			e.printStackTrace();
-			this.reconnect();
+			this.reconnect(this.host);
 			return this.callStoredProcedure(proc);
 		} catch (IOException e) {
 			if (e.getMessage() != null)
@@ -276,6 +280,10 @@ public class MyClient {
 				return "Rider: " + proc.getJSONArray("args").getInt(0) + " already has a bike checked out";
 			if (err == USER_DOESNT_EXIST)
 				return "Rider: " + proc.getJSONArray("args").getInt(0) + " does not exist";
+			if (err == NULL_RIDER_ID)
+				return "Bike: " + proc.getJSONArray("args").getInt(0) + " is not checked out";
+			if (err == BIKE_DOESNT_EXIST)
+				return "Bike: " + proc.getJSONArray("args").getInt(0) + " does not exist";
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
@@ -342,8 +350,8 @@ public class MyClient {
 	public static void main(String [] args) {
 		String proc;
 		JSONObject j;
+		MyClient myc = new MyClient(args[0]);
 		VoltTable [] results;
-		MyClient myc = new MyClient();
 		try {
 			myc.api = myc.serverSocket.accept();
 			myc.out = new OutputStreamWriter(myc.api.getOutputStream(), "UTF-8");

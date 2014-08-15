@@ -50,6 +50,8 @@ public abstract class BikerStreamConstants {
     public static final long NO_BIKE_CHECKED_OUT = -6;
     public static final long USER_ALREADY_HAS_BIKE = -7;
     public static final long USER_DOESNT_EXIST = -8;
+    public static final long NULL_RIDER_ID = -9;
+    public static final long BIKE_DOESNT_EXIST = -10;
 
 
     // ===========================================================================
@@ -63,7 +65,7 @@ public abstract class BikerStreamConstants {
     // of zones, stations and docks.
     //
 
-    public static final int NUM_BIKES_PER_STATION = 10;
+    public static final int NUM_BIKES_PER_STATION = 3;
     public static final int NUM_DOCKS_PER_STATION = 20;
 
     public static final String ROUTES_DIR =
@@ -182,7 +184,7 @@ public abstract class BikerStreamConstants {
 
     // The discount threshold is the number of bikes necessary at a station before discounts
     // begin being added.
-    public static final long DISCOUNT_THRESHOLD = 5;
+    public static final long DISCOUNT_THRESHOLD = 1;
 
     public static final long CHECKOUT_SUCCESS = 0;
 

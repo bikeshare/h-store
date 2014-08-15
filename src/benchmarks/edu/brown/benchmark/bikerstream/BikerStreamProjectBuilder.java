@@ -55,6 +55,7 @@ public class BikerStreamProjectBuilder extends AbstractProjectBuilder {
             FindUser.class,
             GetAnomalies.class,
             GetBikeStatus.class,
+            GetBikeLocation.class,
             GetNearDiscounts.class,
             GetRecentRiderArea.class,
             GetRecentRiderSummary.class,
