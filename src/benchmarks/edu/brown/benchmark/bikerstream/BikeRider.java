@@ -71,6 +71,12 @@ public class BikeRider {
       */
     private int currentIndex = 0;
 
+    /**
+     * isAnomolicRider.
+     * Is this rider going to be an anomoly?
+     */
+    private boolean anomolyRider = false;
+
     private static int numStations = BikerStreamConstants.STATION_NAMES.length;
     private static int numChoices  = BikerStreamConstants.DP_NAMES.length;
 
@@ -86,14 +92,16 @@ public class BikeRider {
     // information.
     public BikeRider(long rider_id) throws IOException {
         this.rider_id = rider_id;
+        setAnomoly();
 
-            //comment("Generating Route");
-            genRandStations();
-            //comment("Route Generated");
+        //comment("Generating Route");
+        genRandStations();
+        //comment("Route Generated");
     }
 
     public BikeRider(long rider_id, int start) throws IOException {
         this.rider_id = rider_id;
+        setAnomoly();
 
         //comment("Generating Route from station: " + start);
         genRandStations(start);
@@ -103,6 +111,7 @@ public class BikeRider {
     public BikeRider(long rider_id, int start_station, int end_station, int[] choices) throws IOException {
         this.rider_id = rider_id;
         this.currentIndex = 0;
+        setAnomoly();
 
         //comment("Generating Route");
         int[] temp = ArrayUtils.addAll(new int[]{start_station}, choices);
@@ -128,6 +137,18 @@ public class BikeRider {
 
     public int[] getWaypoints(){
         return this.waypoints;
+    }
+
+    public void setAnomoly() {
+        int chance = (new Random()).nextInt(BikerStreamConstants.ANOMOLY_CHANCE);
+        if (chance == 0){
+            System.out.println("Rider: " + this.rider_id + ": is an Anomoly");
+            this.anomolyRider = true;
+        }
+    }
+
+    public boolean getAnomoly() {
+        return this.anomolyRider;
     }
 
     public void comment(String str){
@@ -255,6 +276,15 @@ public class BikeRider {
         return points;
     }
 
+    private LinkedList<Reading> skipNPoints(LinkedList<Reading> points) {
+        LinkedList<Reading> newRoute = new LinkedList<Reading>();
+        int listLength = points.size();
+        for (int i=0; i < listLength; i += BikerStreamConstants.ANOMOLY_SKIP){
+            newRoute.add(points.get(i));
+        }
+        return newRoute;
+    }
+
     public LinkedList<Reading> getNextRoute() throws IOException {
 
         if (this.hasMorePoints()){
@@ -266,11 +296,12 @@ public class BikeRider {
                     BikerStreamConstants.LOGICAL_NAMES[thisStation]
                     + " to " +
                     BikerStreamConstants.LOGICAL_NAMES[nextStation]);
-            return readInPoints(file);
+
+            LinkedList<Reading> points = readInPoints(file);
+            return anomolyRider ? skipNPoints(points) : points;
+
         }
-
         return null;
-
     }
 
     public boolean hasMorePoints() {
