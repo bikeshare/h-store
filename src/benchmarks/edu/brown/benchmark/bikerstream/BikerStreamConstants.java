@@ -50,8 +50,10 @@ public abstract class BikerStreamConstants {
     public static final long NO_BIKE_CHECKED_OUT    = -6;
     public static final long USER_ALREADY_HAS_BIKE  = -7;
     public static final long USER_DOESNT_EXIST      = -8;
+    public static final long NULL_RIDER_ID = -9;
+    public static final long BIKE_DOESNT_EXIST = -10;
 
-    public static final int  ANOMOLY_CHANCE = 10
+    public static final int  ANOMOLY_CHANCE = 10;
     public static final int  ANOMOLY_SKIP   = 7;
 
     // ===========================================================================
