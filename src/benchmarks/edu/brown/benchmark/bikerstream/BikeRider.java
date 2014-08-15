@@ -87,27 +87,27 @@ public class BikeRider {
     public BikeRider(long rider_id) throws IOException {
         this.rider_id = rider_id;
 
-            comment("Generating Route");
+            //comment("Generating Route");
             genRandStations();
-            comment("Route Generated");
+            //comment("Route Generated");
     }
 
     public BikeRider(long rider_id, int start) throws IOException {
         this.rider_id = rider_id;
 
-        comment("Generating Route from station: " + start);
+        //comment("Generating Route from station: " + start);
         genRandStations(start);
-        comment("Route Generated");
+        //comment("Route Generated");
     }
 
     public BikeRider(long rider_id, int start_station, int end_station, int[] choices) throws IOException {
         this.rider_id = rider_id;
         this.currentIndex = 0;
 
-        comment("Generating Route");
+        //comment("Generating Route");
         int[] temp = ArrayUtils.addAll(new int[]{start_station}, choices);
         waypoints  = ArrayUtils.addAll(temp, new int[]{end_station});
-        comment("Route Generated");
+        //comment("Route Generated");
     }
 
 
@@ -131,7 +131,7 @@ public class BikeRider {
     }
 
     public void comment(String str){
-        System.out.println("Rider: " + rider_id + " -> " + str);
+        System.out.println("Rider: " + rider_id + " : " + str);
     }
 
     public void deviateRandomly() throws IOException {
@@ -141,7 +141,8 @@ public class BikeRider {
         int stationIndex;
         while ((stationIndex = gen.nextInt(numStations)) == currentLocation) {}
 
-        comment("Deviating route to station: " + stationIndex);
+        comment("Deviating route to station: " + 
+                    BikerStreamConstants.LOGICAL_NAMES[stationIndex]);
         waypoints = new int[] {currentLocation, stationIndex};
         currentIndex = 0;
     }
@@ -155,7 +156,8 @@ public class BikeRider {
             return;
         }
 
-        comment("Deviating route to station: " + stationIndex);
+        comment("Deviating route to station: " + 
+                    BikerStreamConstants.LOGICAL_NAMES[stationIndex]);
         waypoints = new int[] {currentLocation, stationIndex};
         currentIndex = 0;
     }
@@ -260,7 +262,10 @@ public class BikeRider {
             int nextStation = waypoints[currentIndex +1];
             String file = routeName(thisStation, nextStation);
             ++currentIndex;
-            comment("heading to station " + nextStation);
+            comment("Heading from " + 
+                    BikerStreamConstants.LOGICAL_NAMES[thisStation]
+                    + " to " +
+                    BikerStreamConstants.LOGICAL_NAMES[nextStation]);
             return readInPoints(file);
         }
 

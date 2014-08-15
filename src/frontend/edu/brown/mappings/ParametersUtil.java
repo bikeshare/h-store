@@ -162,7 +162,8 @@ public abstract class ParametersUtil {
         } catch (Exception ex) {
             String msg = String.format("Failed to find ParameterMappingSet file '%s' in '%s'",
                                        paramFile, jarPath);
-            LOG.warn(msg); // , (debug.val ? ex : null));
+            //LOG.warn(msg); // , (debug.val ? ex : null));
+            //KT - PUT THIS BACK IN...AFTER DEMO
             return (null);
         }
         ParameterMappingsSet pms = null;

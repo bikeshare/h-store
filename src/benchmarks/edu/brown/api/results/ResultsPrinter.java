@@ -274,6 +274,7 @@ public class ResultsPrinter implements BenchmarkInterest {
         sb.append(String.format("At time %d out of %d (%d%%):",
                                 currentTime, duration, currentTime * 100 / duration));
         sb.append("\n" + SPACER);
+        /* KT - ADD BACK IN AFTER DEMO
         sb.append(String.format("In the past %d ms:",
                                 duration / pollCount));
         sb.append("\n" + SPACER + SPACER);
@@ -287,7 +288,7 @@ public class ResultsPrinter implements BenchmarkInterest {
         sb.append(String.format("Completed %d txns at a rate of " + RESULT_FORMAT + " txns/s",
                                 totalTxnCount, totalTxnCount / (double)(pollIndex * results.getIntervalDuration()) * 1000d));
         sb.append(String.format(" with " + RESULT_FORMAT + " ms avg latency", totalLatency));
-        
+       */ 
 
         //added by hawk
 //        if( (w!=null) && (w.getFirst()!=0) ){
