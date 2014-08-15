@@ -12,7 +12,7 @@ CREATE TABLE stations
 ,   longitude      FLOAT        NOT NULL
 );
 
-CREATE TABLE StationStatus
+CREATE TABLE stationStatus
 (
     station_id            INTEGER NOT NULL REFERENCES stations(station_id)
 ,   current_bikes         INTEGER NOT NULL
@@ -66,6 +66,40 @@ CREATE TABLE nearByDiscounts (
 ,   station_id  INTEGER NOT NULL REFERENCES stations(station_id)
 );
 
+
+-- to be 'insert into' by ProcessBikeStatus
+CREATE TABLE riderPositions (
+    user_id   INTEGER NOT NULL REFERENCES users(user_id)
+,   latitude  FLOAT   NOT NULL
+,   longitude FLOAT   NOT NULL
+,   time      TIMESTAMP NOT NULL
+);
+
+-- to be updated by DetectAnomalies
+CREATE TABLE anomalies (
+    user_id   INTEGER references users(user_id)
+,   status    INTEGER NOT NULL
+);
+
+
+-- to be updated by
+CREATE TABLE recentRiderArea (
+    latitude_1  FLOAT   NOT NULL
+,   longitude_1 FLOAT   NOT NULL
+,   latitude_2  FLOAT   NOT NULL
+,   longitude_2 FLOAT   NOT NULL
+,   sqr_mile    FLOAT   NOT NULL
+);
+
+
+-- to be updated by
+CREATE TABLE recentRiderSummary (
+    rider_count INTEGER NOT NULL
+,   speed_max   FLOAT   NOT NULL
+,   speed_min   FLOAT   NOT NULL
+,   speed_avg   FLOAT   NOT NULL
+);
+
 -- =============
 -- STREAM TABLES
 -- =============
@@ -76,18 +110,32 @@ CREATE STREAM bikeStatus (
 ,   longitude FLOAT     NOT NULL
 ,   time      TIMESTAMP NOT NULL
 );
+CREATE WINDOW lastNBikeStatus ON bikeStatus ROWS 100 SLIDE 1;
 
 
+-- to be fed by UpdateNearByStations
 CREATE STREAM s1 (
     user_id   INTEGER   NOT NULL REFERENCES users(user_id)
 );
 
+
+-- to be fed by CalculateSpeed
+CREATE STREAM riderSpeeds (
+    user_id   INTEGER   NOT NULL REFERENCES users(user_id)
+,   speed     FLOAT     NOT NULL
+);
+CREATE WINDOW lastNRiderSpeeds ON riderSpeeds ROWS 100 SLIDE 1;
+
+
+-- to be fed by ProcessBikeStatus
+CREATE STREAM s3 (
+    user_id   INTEGER   NOT NULL REFERENCES users(user_id)
+,   latitude  FLOAT     NOT NULL
+,   longitude FLOAT     NOT NULL
+);
+
+
 -- ------------------------- ^ Locked in tables ^ ------------------------------
-
---- Window over the bikereadings_stream.
-CREATE WINDOW bikerstream_window ON bikestatus ROWS 100 SLIDE 10;
-
-CREATE WINDOW lastNTuples ON bikestatus ROWS 100 SLIDE 10;
 
 CREATE TABLE discounts
 (
@@ -99,5 +147,4 @@ CREATE TABLE userLocations (
     user_id   INTEGER PRIMARY KEY REFERENCES users(user_id),
     latitude  FLOAT   NOT NULL,
     longitude FLOAT   NOT NULL
-    );
-
+);
