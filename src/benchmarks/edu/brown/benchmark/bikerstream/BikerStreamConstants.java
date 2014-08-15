@@ -39,7 +39,7 @@ public abstract class BikerStreamConstants {
     public static final long BIKEREADING_SUCCESSFUL  = 0;
 
     public static final int NUM_WAITERS = 9;
-    public static final long GAME_TIMER = 40000;
+    public static final long GAME_TIMER = 20000;
     public static final int GAME_STATION = 3;
 
     public static final long FAILED_CHECKOUT = -1;
