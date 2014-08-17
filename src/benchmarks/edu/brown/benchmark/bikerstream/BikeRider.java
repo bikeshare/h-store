@@ -142,7 +142,7 @@ public class BikeRider {
     public void setAnomoly() {
         int chance = (new Random()).nextInt(BikerStreamConstants.ANOMOLY_CHANCE);
         if (chance == 0){
-            System.out.println("Rider: " + this.rider_id + ": is an Anomoly");
+            //System.out.println("Rider: " + this.rider_id + ": is an Anomaly");
             this.anomolyRider = true;
         }
     }
