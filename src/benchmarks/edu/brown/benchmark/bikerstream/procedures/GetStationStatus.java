@@ -47,7 +47,7 @@ public class GetStationStatus extends VoltProcedure {
     private static final Logger Log = Logger.getLogger(GetStationStatus.class);
 
     public final SQLStmt getStationStatus = new SQLStmt(
-                "SELECT s.station_id, s.station_name, s.street_address, s.latitude, s.longitude, ss.current_bikes, ss.current_docks, ss.current_discount FROM stations AS s JOIN stationstatus AS ss ON s.station_id=? AND s.station_id=ss.station_id"
+                "SELECT s.station_id, s.station_name, s.street_address, s.latitude, s.longitude, ss.current_bikes, ss.current_docks, ss.current_discount FROM stations AS s JOIN stationStatus AS ss ON s.station_id=? AND s.station_id=ss.station_id"
             );
 
     public VoltTable [] run(int station_id) {
